@@ -142,19 +142,26 @@
   /* ---------- Selector tipo píldora: el fondo se desliza hasta la opción elegida ---------- */
   function makeDial(host, items, value, label, onChange) {
     host.innerHTML = `<div class="seg-scroll"><div class="seg" role="radiogroup" aria-label="${esc(label)}">
-        <span class="seg-thumb" aria-hidden="true"></span>
+        <span class="seg-thumb" aria-hidden="true"><span class="seg-thumb-labels">${items.map((it) => `<span class="seg-item">${esc(it.label)}</span>`).join("")}</span></span>
         ${items.map((it, i) => `<button type="button" class="seg-item" role="radio" aria-checked="false" tabindex="-1" data-i="${i}">${esc(it.label)}</button>`).join("")}
       </div></div>`;
     const scroller = host.firstElementChild, seg = scroller.firstElementChild, thumb = seg.querySelector(".seg-thumb");
-    const buttons = [...seg.querySelectorAll(".seg-item")];
+    const buttons = [...seg.querySelectorAll("button.seg-item")];
+    // Dentro de la píldora hay una copia de las etiquetas en el color contrario que se desplaza al revés:
+    // así el texto cambia de color justo por donde pasa el borde de la píldora
+    const thumbLabels = thumb.firstElementChild;
+    const setThumb = (x, w) => {
+      thumb.style.width = w + "px";
+      thumb.style.transform = `translateX(${x}px)`;
+      thumbLabels.style.transform = `translateX(${-x}px)`;
+    };
     let index = Math.max(0, items.findIndex((it) => it.value === value));
 
     function place(animate) {
       const b = buttons[index];
       thumb.classList.toggle("is-moving", !!animate);
-      thumb.style.width = b.offsetWidth + "px";
-      thumb.style.transform = `translateX(${b.offsetLeft}px)`;
-      buttons.forEach((x, j) => { x.setAttribute("aria-checked", String(j === index)); x.tabIndex = j === index ? 0 : -1; });
+      setThumb(b.offsetLeft, b.offsetWidth);
+      buttons.forEach((x, j) => { x.setAttribute("aria-checked", String(j === index)); x.tabIndex = j === index ? 0 : -1; x.classList.toggle("is-near", j === index); });
       // Si no cabe entero (móvil), desliza la fila para que la opción elegida quede a la vista
       const pad = 24, left = b.offsetLeft - pad, right = b.offsetLeft + b.offsetWidth + pad;
       if (left < scroller.scrollLeft) scroller.scrollTo({ left, behavior: animate ? "smooth" : "auto" });
@@ -168,7 +175,48 @@
       if (focus) buttons[i].focus({ preventScroll: true });
       if (changed) onChange(items[i].value);
     }
-    seg.addEventListener("click", (e) => { const b = e.target.closest(".seg-item"); if (b) select(+b.dataset.i); });
+    seg.addEventListener("click", (e) => {
+      if (dragged) { dragged = false; return; }
+      const b = e.target.closest(".seg-item"); if (b) select(+b.dataset.i);
+    });
+    // Arrastrar: la píldora sigue al dedo, cambia de ancho entre opciones y al soltar encaja en la más cercana
+    let drag = null, dragged = false;
+    const centers = () => buttons.map((b) => b.offsetLeft + b.offsetWidth / 2);
+    seg.addEventListener("pointerdown", (e) => {
+      if (e.button) return;
+      drag = { x0: e.clientX, near: index, active: false };
+    });
+    seg.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      if (!drag.active) {
+        if (Math.abs(e.clientX - drag.x0) < 5) return;
+        drag.active = true; seg.setPointerCapture(e.pointerId); seg.classList.add("is-dragging");
+        thumb.classList.remove("is-moving");
+      }
+      const c = centers(), rect = seg.getBoundingClientRect();
+      const x = Math.max(c[0], Math.min(c[c.length - 1], e.clientX - rect.left));
+      let i = 0;
+      while (i < c.length - 2 && x > c[i + 1]) i++;
+      const t = c.length > 1 ? (x - c[i]) / (c[i + 1] - c[i]) : 0;
+      const w = buttons[i].offsetWidth + (buttons[Math.min(i + 1, c.length - 1)].offsetWidth - buttons[i].offsetWidth) * t;
+      setThumb(x - w / 2, w);
+      const near = t < 0.5 ? i : i + 1;
+      if (near !== drag.near) {
+        drag.near = near;
+        buttons.forEach((b, j) => b.classList.toggle("is-near", j === near));
+        if (navigator.vibrate) navigator.vibrate(4);
+      }
+    });
+    const endDrag = () => {
+      if (!drag) return;
+      const d = drag; drag = null;
+      if (!d.active) return;
+      dragged = true; setTimeout(() => (dragged = false), 0);
+      seg.classList.remove("is-dragging");
+      if (d.near === index) place(true); else select(d.near);
+    };
+    seg.addEventListener("pointerup", endDrag);
+    seg.addEventListener("pointercancel", endDrag);
     seg.addEventListener("keydown", (e) => {
       const k = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
       if (k) { e.preventDefault(); select(index + k, true); }
