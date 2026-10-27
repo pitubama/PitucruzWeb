@@ -65,7 +65,46 @@ button { font: inherit; color: inherit; }
 .site-nav a:hover, .site-nav a[aria-current="page"] { color: var(--fg); }
 
 .menu-toggle { display: none; }
-.glass-edge { display: none; }
+/* Bordes de arriba y abajo: desenfoque progresivo en cinco capas (cada una más fuerte y más
+   pegada al borde, con máscaras solapadas para que no se vean escalones) y encima un fundido
+   suave al color del fondo, así lo desenfocado se disuelve en vez de quedarse como una mancha */
+.glass-edge {
+  display: block; position: fixed; left: 0; right: 0; z-index: 24; pointer-events: none;
+  --dir: to bottom;
+}
+.glass-edge.top { top: 0; height: calc(130px + env(safe-area-inset-top, 0px)); opacity: 0; transition: opacity .35s ease; }
+.glass-edge.bottom { bottom: 0; height: calc(110px + env(safe-area-inset-bottom, 0px)); --dir: to top; }
+.glass-edge i {
+  position: absolute; inset: 0;
+  -webkit-backdrop-filter: blur(var(--b)); backdrop-filter: blur(var(--b));
+  -webkit-mask-image: linear-gradient(var(--dir), #000 0%, #000 var(--s), transparent var(--e));
+  mask-image: linear-gradient(var(--dir), #000 0%, #000 var(--s), transparent var(--e));
+}
+.glass-edge i:nth-child(1) { --b: 1px;  --s: 55%; --e: 100%; -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); }
+.glass-edge i:nth-child(2) { --b: 2px;  --s: 40%; --e: 80%; }
+.glass-edge i:nth-child(3) { --b: 4px;  --s: 28%; --e: 62%; }
+.glass-edge i:nth-child(4) { --b: 7px;  --s: 16%; --e: 45%; }
+.glass-edge i:nth-child(5) { --b: 12px; --s: 6%;  --e: 28%; }
+.glass-edge::after {
+  content: ""; position: absolute; inset: 0;
+  background: var(--grain-img) 0 0 / var(--grain-size), var(--bg);
+  background-blend-mode: soft-light, normal;
+  --fade: linear-gradient(var(--dir), #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%);
+  -webkit-mask-image: var(--fade); mask-image: var(--fade);
+}
+/* Arriba del todo no hay nada que difuminar; el borde de arriba aparece al hacer scroll,
+   por detrás de la cabecera, y asoma por su degradado */
+:root[data-scrolled] .glass-edge.top { opacity: 1; }
+/* En escritorio los bordes son algo más altos, a juego con la pantalla */
+@media (min-width: 760px) {
+  .glass-edge.top { height: 150px; }
+  .glass-edge.bottom { height: 130px; }
+}
+
+/* Curvatura: lo que se acerca a los bordes se inclina en 3D (lo calcula app.js).
+   Al ensancharse un poco no debe aparecer scroll horizontal */
+html, body { overflow-x: clip; }
+.curve { will-change: transform; backface-visibility: hidden; }
 .all-link-bottom { display: none; }
 
 main:focus { outline: none; }
@@ -403,41 +442,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 /* ---------- Móvil ---------- */
 @media (max-width: 759px) {
-  /* Bordes de arriba y abajo: desenfoque progresivo en cinco capas (cada una más fuerte y más
-     pegada al borde, con máscaras solapadas para que no se vean escalones) y encima un fundido
-     suave al color del fondo, así lo desenfocado se disuelve en vez de quedarse como una mancha */
-  .glass-edge {
-    display: block; position: fixed; left: 0; right: 0; z-index: 24; pointer-events: none;
-    --dir: to bottom;
-  }
-  .glass-edge.top { top: 0; height: calc(130px + env(safe-area-inset-top, 0px)); opacity: 0; transition: opacity .35s ease; }
-  .glass-edge.bottom { bottom: 0; height: calc(110px + env(safe-area-inset-bottom, 0px)); --dir: to top; }
-  .glass-edge i {
-    position: absolute; inset: 0;
-    -webkit-backdrop-filter: blur(var(--b)); backdrop-filter: blur(var(--b));
-    -webkit-mask-image: linear-gradient(var(--dir), #000 0%, #000 var(--s), transparent var(--e));
-    mask-image: linear-gradient(var(--dir), #000 0%, #000 var(--s), transparent var(--e));
-  }
-  .glass-edge i:nth-child(1) { --b: 1px;  --s: 55%; --e: 100%; -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); }
-  .glass-edge i:nth-child(2) { --b: 2px;  --s: 40%; --e: 80%; }
-  .glass-edge i:nth-child(3) { --b: 4px;  --s: 28%; --e: 62%; }
-  .glass-edge i:nth-child(4) { --b: 7px;  --s: 16%; --e: 45%; }
-  .glass-edge i:nth-child(5) { --b: 12px; --s: 6%;  --e: 28%; }
-  .glass-edge::after {
-    content: ""; position: absolute; inset: 0;
-    background: var(--grain-img) 0 0 / var(--grain-size), var(--bg);
-    background-blend-mode: soft-light, normal;
-    --fade: linear-gradient(var(--dir), #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%);
-    -webkit-mask-image: var(--fade); mask-image: var(--fade);
-  }
-  /* Arriba del todo no hay nada que difuminar; el borde de arriba aparece al hacer scroll,
-     por detrás de la cabecera, y asoma por su degradado */
-  :root[data-scrolled] .glass-edge.top { opacity: 1; }
-
-  /* Curvatura: lo que se acerca a los bordes se inclina en 3D (lo calcula app.js) */
-  html, body { overflow-x: clip; }
-  .curve { will-change: transform; backface-visibility: hidden; }
-
   .site-head {
     position: sticky; top: env(safe-area-inset-top, 0px); z-index: 25;
     display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0;

@@ -366,7 +366,7 @@
     if (!mobile.matches || head.hasAttribute("data-open")) { if (hidden) setHidden(0); return; }
     setHidden(Math.min(head.offsetHeight, Math.max(0, hidden + delta), y));
   }, { passive: true });
-  /* Móvil: cerca de los bordes de la pantalla el contenido se curva hacia ti, como en una pantalla curva.
+  /* Cerca de los bordes de la pantalla el contenido se curva hacia ti, como en una pantalla curva.
      Cada bloque se inclina en 3D según lo cerca que esté del borde y se ensancha un poco */
   const CURVE = ".intro-line, .section-head, .card-frame, .card-text, .all-link-bottom, .about-facts dt, .about-facts dd, .about-text p, .back, .project-title, .project-summary, .credits dt, .credits dd, .media > *, .next, .site-foot > *";
   let curveEls = [], curveRaf = 0;
@@ -380,11 +380,13 @@
   }
   function updateCurve() {
     curveRaf = 0;
-    if (!mobile.matches || reduceMotion) {
+    if (reduceMotion) {
       curveEls.forEach(({ el }) => { if (el.classList.contains("curve")) { el.classList.remove("curve"); el.style.transform = el.style.transformOrigin = ""; } });
       return;
     }
-    const vh = window.innerHeight, cx = document.documentElement.clientWidth / 2, zone = vh * 0.3, y = window.scrollY;
+    const vh = window.innerHeight, vw = document.documentElement.clientWidth, cx = vw / 2, zone = vh * 0.3, y = window.scrollY;
+    // En pantallas grandes la perspectiva se aleja para que la curva se sienta igual que en el móvil
+    const persp = Math.max(620, Math.min(vw, vh * 1.6));
     curveEls.forEach(({ el, top: docTop, h, left }) => {
       const top = docTop - y, bottom = top + h;
       if (bottom < -60 || top > vh + 60) { if (el.style.transform) el.style.transform = ""; return; }
@@ -399,7 +401,7 @@
       el.classList.add("curve");
       el.style.transformOrigin = `${(cx - left).toFixed(1)}px 50%`;
       const kk = side < 0 ? k * Math.min(1, y / 200) : k;
-      el.style.transform = `perspective(620px) rotateX(${(side * 32 * kk).toFixed(2)}deg) scaleX(${(1 + 0.05 * kk).toFixed(4)})`;
+      el.style.transform = `perspective(${persp.toFixed(0)}px) rotateX(${(side * 32 * kk).toFixed(2)}deg) scaleX(${(1 + 0.05 * kk).toFixed(4)})`;
     });
   }
   const queueCurve = () => { if (!curveRaf) curveRaf = requestAnimationFrame(updateCurve); };
@@ -413,6 +415,32 @@
   new MutationObserver(() => { queueMeasure(40); setTimeout(() => queueMeasure(0), 900); }).observe(main, { childList: true });
   if ("ResizeObserver" in window) new ResizeObserver(() => queueMeasure()).observe(main);
   measureCurve();
+
+  /* Escritorio: la rueda del ratón desplaza la página con inercia, deslizándose hasta su sitio.
+     Si otra cosa mueve la página (teclado, un enlace, la barra) se suelta y la deja hacer */
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const glide = { y: 0, target: 0, last: 0, t: 0, raf: 0 };
+  function glideStep(now) {
+    glide.raf = 0;
+    if (Math.abs(window.scrollY - glide.last) > 2) return;
+    const dt = Math.min(64, now - (glide.t || now)); glide.t = now;
+    const d = glide.target - glide.y;
+    glide.y = Math.abs(d) < 0.4 ? glide.target : glide.y + d * (1 - Math.exp(-dt / 140));
+    window.scrollTo(0, glide.y);
+    glide.last = window.scrollY;
+    if (glide.y !== glide.target) glide.raf = requestAnimationFrame(glideStep);
+  }
+  window.addEventListener("wheel", (e) => {
+    if (!finePointer.matches || reduceMotion || e.ctrlKey || e.defaultPrevented || root.hasAttribute("data-menu")) return;
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    const dy = e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? window.innerHeight : 1);
+    if (!glide.raf) { glide.y = glide.target = glide.last = window.scrollY; glide.t = 0; }
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    glide.target = Math.max(0, Math.min(max, glide.target + dy));
+    if (!glide.raf) glide.raf = requestAnimationFrame(glideStep);
+  }, { passive: false });
+  window.addEventListener("hashchange", () => { cancelAnimationFrame(glide.raf); glide.raf = 0; });
 
   /* Móvil: al tocar un fotograma de un proyecto, gira 90° y crece hasta ocupar la pantalla,
      como si hubieras tumbado el teléfono. Otro toque (o Escape) lo devuelve a su sitio */
