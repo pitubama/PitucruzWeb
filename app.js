@@ -572,7 +572,11 @@
   // con los bordes un poco apretados para que sean granos y no manchas, y algo de color en cada canal
   // Escaneos reales de grano (50D y 500T sobre gris neutro), recortados en teselas sin costuras
   // y centrados para que con soft-light no cambien el color medio del fondo
-  const GRAINS = { "50D": "img/grain-50d.jpg?v=1", "500T": "img/grain-500t.jpg?v=1" };
+  // Cada píxel de la tesela ocupa un píxel físico de la pantalla, así el grano es igual de fino en cualquier pantalla
+  const GRAINS = { "50D": "img/grain-50d.jpg?v=2", "500T": "img/grain-500t.jpg?v=2" };
+  const grainSize = () => root.style.setProperty("--grain-size", 768 / (window.devicePixelRatio || 1) + "px");
+  grainSize();
+  window.addEventListener("resize", grainSize);
   function setGrain(name) {
     root.style.setProperty("--grain-img", GRAINS[name] ? `url(${GRAINS[name]})` : "none");
     root.dataset.grain = GRAINS[name] ? name : "none";
