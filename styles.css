@@ -385,14 +385,15 @@ a, button { -webkit-tap-highlight-color: transparent; }
 @keyframes fade-out { to { opacity: 0; } }
 @keyframes page-in { from { opacity: 0; } }
 
-/* Los stills que entran se abren como un obturador, uno detrás de otro */
-.grid li.reveal .card-frame { animation: shutter 1s var(--ease) both; animation-delay: calc(var(--i, 0) * 80ms + 150ms); }
+/* Los stills que entran se abren como un obturador, uno detrás de otro.
+   "backwards" y no "both": si la animación se queda puesta al acabar, tapa la transición del zoom al pasar el ratón */
+.grid li.reveal .card-frame { animation: shutter 1s var(--ease) backwards; animation-delay: calc(var(--i, 0) * 80ms + 150ms); }
 .grid li.reveal .card-text { animation: page-in .6s var(--ease) both; animation-delay: calc(var(--i, 0) * 80ms + 450ms); }
 @keyframes shutter {
   from { clip-path: inset(50% 0 50% 0); }
   to { clip-path: inset(0 0 0 0); }
 }
-.grid li.reveal .card-frame img { animation: settle 1.4s var(--ease) both; animation-delay: inherit; }
+.grid li.reveal .card-frame img { animation: settle 1.4s var(--ease) backwards; animation-delay: inherit; }
 @keyframes settle { from { transform: scale(1.12); } }
 
 @media (prefers-reduced-motion: reduce) {
