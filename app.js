@@ -567,47 +567,60 @@
   document.getElementById("grade-reset").addEventListener("click", () => { state = { ...DEFAULT }; apply(true); grainPick.set(state.grain); setGrain(state.grain); });
 
   /* ---------- Grano del fondo: se genera una vez como textura de ruido ---------- */
-  // 50D: grano fino y suave. 500T: grano gordo y más marcado. Noise Reduction: sin grano
+  // 50D: grano fino y suave. 500T: grano más gordo, en grumos de varios tamaños. Noise Reduction: sin grano
+  // Cada grano es una mezcla de ruido a varias escalas (como los cristales de plata de distintos tamaños),
+  // con los bordes un poco apretados para que sean granos y no manchas, y algo de color en cada canal
   const GRAINS = {
-    "50D": { px: 1, amp: 30 },
-    "500T": { px: 2.2, amp: 58 },
+    "50D": { size: 320, layers: [[1, 1], [1.6, 0.3]], amp: 20, sharp: 1.1, chroma: 0.12, chromaCell: 1.4, mid: 121 },
+    "500T": { size: 384, layers: [[1, 0.5], [1.8, 0.8], [3, 0.35]], amp: 27, sharp: 1.35, chroma: 0.18, chromaCell: 2, mid: 117 },
   };
+  const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  // Ruido suave con granos de unos "cell" píxeles, que empalma por los bordes (la textura se repite sin costuras)
+  function noiseField(N, cell) {
+    const m = Math.max(1, Math.round(N / cell)), c = N / m, base = new Float32Array(m * m);
+    for (let i = 0; i < base.length; i++) base[i] = gauss();
+    const out = new Float32Array(N * N);
+    for (let y = 0; y < N; y++) {
+      const fy = y / c - 0.5, y0 = Math.floor(fy), ty = fy - y0, ya = ((y0 % m) + m) % m, yb = (ya + 1) % m, sy = ty * ty * (3 - 2 * ty);
+      for (let x = 0; x < N; x++) {
+        const fx = x / c - 0.5, x0 = Math.floor(fx), tx = fx - x0, xa = ((x0 % m) + m) % m, xb = (xa + 1) % m, sx = tx * tx * (3 - 2 * tx);
+        out[y * N + x] = (base[ya * m + xa] * (1 - sx) + base[ya * m + xb] * sx) * (1 - sy) + (base[yb * m + xa] * (1 - sx) + base[yb * m + xb] * sx) * sy;
+      }
+    }
+    let sum = 0; for (const v of out) sum += v * v;
+    const k = 1 / Math.sqrt(sum / out.length);
+    for (let i = 0; i < out.length; i++) out[i] *= k;
+    return out;
+  }
   const grainCache = {};
   function grainTexture(name) {
     if (grainCache[name]) return grainCache[name];
-    const { px, amp } = GRAINS[name];
-    const size = 256, n = Math.round(size / px);
+    const p = GRAINS[name], N = p.size;
+    const L = new Float32Array(N * N);
+    for (const [cell, w] of p.layers) { const f = noiseField(N, cell); for (let i = 0; i < L.length; i++) L[i] += f[i] * w; }
+    let sum = 0; for (const v of L) sum += v * v;
+    const k = 1 / Math.sqrt(sum / L.length);
+    const cr = noiseField(N, p.chromaCell), cg = noiseField(N, p.chromaCell), cb = noiseField(N, p.chromaCell);
+    const sharpen = (x) => (Math.tanh(p.sharp * x) / Math.tanh(p.sharp));
     const c = document.createElement("canvas");
-    c.width = c.height = n;
-    const ctx = c.getContext("2d"), img = ctx.createImageData(n, n), d = img.data;
-    for (let i = 0; i < d.length; i += 4) {
-      // Ruido gris alrededor del gris medio (con soft-light, el gris medio no cambia el color del fondo).
-      // Va un pelín por debajo porque en fondos oscuros aclarar pesa más que oscurecer
-      const g = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
-      const v = Math.max(0, Math.min(255, 121 + g * amp * 1.8));
-      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+    c.width = c.height = N;
+    const ctx = c.getContext("2d"), img = ctx.createImageData(N, N), d = img.data;
+    // Alrededor del gris medio (con soft-light no cambia el color del fondo); un pelín por debajo
+    // porque en fondos oscuros aclarar pesa más que oscurecer
+    for (let i = 0; i < L.length; i++) {
+      const l = sharpen((L[i] * k) / 2.2) * 2.2;
+      d[i * 4] = p.mid + p.amp * (l + p.chroma * cr[i]);
+      d[i * 4 + 1] = p.mid + p.amp * (l + p.chroma * cg[i]);
+      d[i * 4 + 2] = p.mid + p.amp * (l + p.chroma * cb[i]);
+      d[i * 4 + 3] = 255;
     }
     ctx.putImageData(img, 0, 0);
-    let url = c.toDataURL("image/png");
-    if (px > 1) {
-      // Para el grano gordo se amplía la textura con suavizado, así los granos son manchitas y no píxeles
-      // Se añade un borde de píxeles repetidos del lado contrario para que la textura empalme sin costuras
-      const pad = document.createElement("canvas");
-      pad.width = pad.height = n + 2;
-      const pctx = pad.getContext("2d");
-      for (const dx of [-n, 0, n]) for (const dy of [-n, 0, n]) pctx.drawImage(c, 1 + dx, 1 + dy);
-      const big = document.createElement("canvas");
-      big.width = big.height = size;
-      const bctx = big.getContext("2d");
-      bctx.imageSmoothingEnabled = true; bctx.imageSmoothingQuality = "high";
-      const k = size / n;
-      bctx.drawImage(pad, -k, -k, (n + 2) * k, (n + 2) * k);
-      url = big.toDataURL("image/png");
-    }
-    return (grainCache[name] = `url(${url})`);
+    return (grainCache[name] = { url: `url(${c.toDataURL("image/png")})`, size: N + "px" });
   }
   function setGrain(name) {
-    root.style.setProperty("--grain-img", GRAINS[name] ? grainTexture(name) : "none");
+    const t = GRAINS[name] && grainTexture(name);
+    root.style.setProperty("--grain-img", t ? t.url : "none");
+    if (t) root.style.setProperty("--grain-size", t.size);
     root.dataset.grain = GRAINS[name] ? name : "none";
   }
   const grainPick = makeDial(document.getElementById("grain-pick"),
