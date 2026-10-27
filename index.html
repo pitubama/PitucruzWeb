@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ismael de la Cruz</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Ismael de la Cruz, colorista de cine digital. Largometrajes, series, publicidad y videoclips.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,300..700;1,300..700&family=Noto+Serif+Display:ital,wght@0,100..900;1,100..900&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+<div class="glass-edge top" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<div class="glass-edge bottom" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+
+<header class="site-head wrap">
+  <a class="brand" href="#" data-home>
+    <span class="brand-name" id="brand-name">Ismael de la Cruz</span>
+    <span class="brand-role" id="brand-role">Colorista de cine digital</span>
+  </a>
+  <button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+    <span class="menu-label">Menú</span><span class="menu-icon" aria-hidden="true"></span>
+  </button>
+  <nav class="site-nav" id="site-nav" aria-label="Principal">
+    <a href="#trabajo">Trabajo</a>
+    <a href="#sobre-mi">Sobre mí</a>
+    <a href="#contacto">Contacto</a>
+  </nav>
+</header>
+
+<main id="main" tabindex="-1"></main>
+
+<footer class="site-foot wrap" id="contacto">
+  <h2 class="foot-title">¿Tienes un proyecto en mente?</h2>
+  <div class="foot-row">
+    <div class="mail">
+      <span class="mail-address" id="mail-address"></span>
+      <button class="btn-quiet" type="button" id="copy-mail">Copiar email</button>
+    </div>
+    <ul class="foot-links" id="foot-links"></ul>
+  </div>
+  <p class="foot-small" id="foot-small"></p>
+</footer>
+
+<!-- Selector de tema: rueda Offset -->
+<div class="grade" id="grade">
+  <button class="grade-toggle" id="grade-toggle" type="button" aria-expanded="false" aria-controls="grade-panel" aria-label="Cambiar color de fondo">
+    <span class="grade-toggle-wheel" aria-hidden="true"><span class="grade-toggle-dot" id="grade-toggle-dot"></span></span>
+  </button>
+  <section class="grade-panel" id="grade-panel" hidden aria-label="Color de fondo">
+    <div class="grade-panel-head">
+      <span class="grade-panel-title">Offset</span>
+      <button class="btn-quiet" type="button" id="grade-reset">Restablecer</button>
+    </div>
+    <div class="wheel" id="wheel">
+      <div class="wheel-disc" aria-hidden="true"></div>
+      <div class="wheel-cross" aria-hidden="true"></div>
+      <div class="wheel-puck" id="wheel-puck" role="slider" tabindex="0"
+           aria-label="Tono del fondo. Usa las flechas para mover el punto"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+    </div>
+    <div class="master">
+      <label class="master-label" for="master">Luminancia</label>
+      <input class="master-range" id="master" type="range" min="0" max="100" step="0.1" value="9">
+    </div>
+    <output class="rgb" id="rgb" aria-live="off">
+      <span><i class="r">R</i><b id="rgb-r">25.00</b></span>
+      <span><i class="g">G</i><b id="rgb-g">25.00</b></span>
+      <span><i class="b">B</i><b id="rgb-b">25.00</b></span>
+    </output>
+    <p class="grade-hint">Arrastra el punto para teñir el fondo. Doble clic en la rueda para volver al gris.</p>
+  </section>
+</div>
+
+<script src="projects.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
