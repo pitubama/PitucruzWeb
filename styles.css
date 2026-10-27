@@ -343,6 +343,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .rgb .r { color: var(--scope-r); } .rgb .g { color: var(--scope-g); } .rgb .b { color: var(--scope-b); }
 /* Grano: 50D fino, 500T grueso, Noise Reduction sin grano */
 .grain-pick { display: grid; gap: 6px; margin-top: 14px; }
+#grain-pick { display: flex; justify-content: center; }
 .grade-panel .seg-scroll { margin: 0; padding: 0; max-width: 100%; }
 .grade-panel .seg { border-color: #3b3b3f; background: #1a1a1c; }
 .grade-panel .seg-item { padding: .5em .95em; font-size: 11px; color: #a9a8a5; }
