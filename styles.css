@@ -25,7 +25,7 @@
 :root[data-tone="light"] { color-scheme: light; }
 
 *, *::before, *::after { box-sizing: border-box; }
-:root { --grain-img: none; --grain-size: 256px; }
+:root { --grain-img: none; --grain-size: 384px; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
