@@ -115,7 +115,7 @@
     const top = [{ value: "Todo", label: "Todo" }];
     if (fiction.length) top.push({ value: "Ficción", label: "Ficción" });
     cats.filter((c) => !FICTION.includes(c)).forEach((c) => top.push({ value: c, label: PLURAL[c] || c }));
-    const sub = [{ value: "Ficción", label: "Toda la ficción" }, ...fiction.map((c) => ({ value: c, label: PLURAL[c] || c }))];
+    const sub = [{ value: "Ficción", label: "Toda" }, ...fiction.map((c) => ({ value: c, label: PLURAL[c] || c }))];
     main.innerHTML = `
       <section class="work wrap" aria-labelledby="trabajo-title">
         <div class="section-head">
@@ -139,113 +139,45 @@
     renderGrid();
   }
 
-  /* ---------- Dial: las opciones van sobre el borde de una rueda que se gira arrastrando ---------- */
+  /* ---------- Selector tipo píldora: el fondo se desliza hasta la opción elegida ---------- */
   function makeDial(host, items, value, label, onChange) {
-    host.innerHTML = `<div class="dial" role="radiogroup" aria-label="${esc(label)}">
-        <div class="dial-wheel">
-          <div class="dial-ticks" aria-hidden="true"></div>
-          ${items.map((it, i) => `<button type="button" class="dial-item" role="radio" aria-checked="false" tabindex="-1" data-i="${i}"><span>${esc(it.label)}</span></button>`).join("")}
-        </div>
-        <span class="dial-mark" aria-hidden="true"></span>
-      </div>`;
-    const dial = host.firstElementChild, wheel = dial.querySelector(".dial-wheel");
-    const buttons = [...dial.querySelectorAll(".dial-item")];
-    let R = 600, step = 10, phi = 0, index = Math.max(0, items.findIndex((it) => it.value === value)), near = index;
-    const deg = 180 / Math.PI;
+    host.innerHTML = `<div class="seg-scroll"><div class="seg" role="radiogroup" aria-label="${esc(label)}">
+        <span class="seg-thumb" aria-hidden="true"></span>
+        ${items.map((it, i) => `<button type="button" class="seg-item" role="radio" aria-checked="false" tabindex="-1" data-i="${i}">${esc(it.label)}</button>`).join("")}
+      </div></div>`;
+    const scroller = host.firstElementChild, seg = scroller.firstElementChild, thumb = seg.querySelector(".seg-thumb");
+    const buttons = [...seg.querySelectorAll(".seg-item")];
+    let index = Math.max(0, items.findIndex((it) => it.value === value));
 
-    function layout() {
-      const w = dial.clientWidth || 360;
-      // Rueda grande para que la curva sea suave
-      R = Math.max(950, w * 2.6);
-      // Separación: la etiqueta más larga más un margen, convertida en grados sobre la rueda
-      const widest = Math.max(...buttons.map((b) => b.firstElementChild.offsetWidth));
-      step = ((widest + 44) / R) * deg;
-      wheel.style.setProperty("--r", R + "px");
-      wheel.style.setProperty("--step", step + "deg");
-      wheel.style.setProperty("--tw", (1.3 / R) * deg + "deg"); // marcas de 1,3 px de ancho, sea cual sea el radio
-      buttons.forEach((b, i) => { b.style.transform = `translateX(-50%) rotate(${i * step}deg)`; });
-      setPhi(index * step, false);
-    }
-    function setPhi(p, animate) {
-      phi = p;
-      wheel.classList.toggle("is-snapping", !!animate);
-      wheel.style.transform = `rotate(${-phi}deg)`;
-      const n = Math.max(0, Math.min(items.length - 1, Math.round(phi / step)));
-      if (n !== near) {
-        near = n;
-        if (dragging && navigator.vibrate) navigator.vibrate(4); // un "clic" del dial en Android
-      }
-      buttons.forEach((b, i) => b.classList.toggle("is-near", i === near));
+    function place(animate) {
+      const b = buttons[index];
+      thumb.classList.toggle("is-moving", !!animate);
+      thumb.style.width = b.offsetWidth + "px";
+      thumb.style.transform = `translateX(${b.offsetLeft}px)`;
+      buttons.forEach((x, j) => { x.setAttribute("aria-checked", String(j === index)); x.tabIndex = j === index ? 0 : -1; });
+      // Si no cabe entero (móvil), desliza la fila para que la opción elegida quede a la vista
+      const pad = 24, left = b.offsetLeft - pad, right = b.offsetLeft + b.offsetWidth + pad;
+      if (left < scroller.scrollLeft) scroller.scrollTo({ left, behavior: animate ? "smooth" : "auto" });
+      else if (right > scroller.scrollLeft + scroller.clientWidth) scroller.scrollTo({ left: right - scroller.clientWidth, behavior: animate ? "smooth" : "auto" });
     }
     function select(i, focus) {
-      i = Number.isFinite(i) ? Math.max(0, Math.min(items.length - 1, i)) : index;
+      i = Math.max(0, Math.min(items.length - 1, i));
       const changed = i !== index;
       index = i;
-      buttons.forEach((b, j) => { b.setAttribute("aria-checked", String(j === i)); b.tabIndex = j === i ? 0 : -1; });
-      setPhi(i * step, true);
+      place(true);
       if (focus) buttons[i].focus({ preventScroll: true });
       if (changed) onChange(items[i].value);
     }
-
-    // Arrastrar: la rueda sigue al dedo y al soltar se encaja en la opción más cercana
-    let dragging = false, x0 = 0, phi0 = 0, moved = 0, lastX = 0, lastT = 0, vel = 0;
-    dial.addEventListener("pointerdown", (e) => {
-      if (e.button) return;
-      dragging = true; moved = 0; x0 = lastX = e.clientX; phi0 = phi; lastT = e.timeStamp; vel = 0;
-      wheel.classList.remove("is-snapping");
-    });
-    dial.addEventListener("pointermove", (e) => {
-      if (!dragging) return;
-      const dx = e.clientX - x0;
-      if (Math.abs(dx) > 4 && !dial.hasPointerCapture(e.pointerId)) dial.setPointerCapture(e.pointerId);
-      moved = Math.max(moved, Math.abs(dx));
-      const dt = Math.max(1, e.timeStamp - lastT);
-      vel = vel * 0.6 + ((e.clientX - lastX) / dt) * 0.4; lastX = e.clientX; lastT = e.timeStamp;
-      let p = phi0 - (dx / R) * deg;
-      const max = (items.length - 1) * step;
-      // Más allá de los extremos se resiste, como un tope con muelle
-      if (p < 0) p *= 0.3; else if (p > max) p = max + (p - max) * 0.3;
-      setPhi(p, false);
-    });
-    const end = (e) => {
-      if (!dragging) return;
-      dragging = false;
-      if (moved < 6) {
-        const hit = document.elementFromPoint(e.clientX, e.clientY);
-        const b = hit && hit.closest(".dial-item");
-        select(b && dial.contains(b) ? +b.dataset.i : index);
-        return;
-      }
-      // Un poco de inercia según la velocidad al soltar
-      const projected = phi - ((vel * 160) / R) * deg;
-      select(Math.round(projected / step));
-    };
-    dial.addEventListener("pointerup", end);
-    dial.addEventListener("pointercancel", end);
-    dial.addEventListener("click", (e) => { const b = e.target.closest(".dial-item"); if (b && e.detail === 0) select(+b.dataset.i); });
-    dial.addEventListener("keydown", (e) => {
+    seg.addEventListener("click", (e) => { const b = e.target.closest(".seg-item"); if (b) select(+b.dataset.i); });
+    seg.addEventListener("keydown", (e) => {
       const k = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
       if (k) { e.preventDefault(); select(index + k, true); }
       else if (e.key === "Home") { e.preventDefault(); select(0, true); }
       else if (e.key === "End") { e.preventDefault(); select(items.length - 1, true); }
     });
-    // Trackpad: desplazamiento horizontal
-    let wheelAcc = 0, wheelT = 0;
-    dial.addEventListener("wheel", (e) => {
-      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
-      e.preventDefault();
-      wheelAcc += e.deltaX;
-      clearTimeout(wheelT);
-      wheelT = setTimeout(() => { wheelAcc = 0; }, 180);
-      if (Math.abs(wheelAcc) > 60) { select(index + Math.sign(wheelAcc)); wheelAcc = 0; }
-    }, { passive: false });
-
-    // Que el foco o el navegador nunca desplacen el interior del dial
-    dial.addEventListener("scroll", () => { dial.scrollTop = dial.scrollLeft = 0; });
-    buttons.forEach((b, j) => { b.setAttribute("aria-checked", String(j === index)); b.tabIndex = j === index ? 0 : -1; });
-    layout();
-    if ("ResizeObserver" in window) new ResizeObserver(() => layout()).observe(dial);
-    if (document.fonts) document.fonts.ready.then(layout);
+    place(false);
+    if ("ResizeObserver" in window) new ResizeObserver(() => place(false)).observe(seg);
+    if (document.fonts) document.fonts.ready.then(() => place(false));
   }
 
   function videoHTML(v, title) {
@@ -406,9 +338,12 @@
       if (k < 0.002) { if (el.style.transform) el.style.transform = ""; return; }
       // Arriba se inclina hacia un lado y abajo hacia el otro: el borde que toca la pantalla se acerca
       const side = top + h / 2 < vh / 2 ? -1 : 1;
+      // Arriba del todo de la página no hay nada que curvar: así el título y los filtros se ven nítidos
+      if (side < 0 && y < 200) { const f = y / 200; if (k * f < 0.002) { if (el.style.transform) el.style.transform = ""; return; } }
       el.classList.add("curve");
       el.style.transformOrigin = `${(cx - left).toFixed(1)}px 50%`;
-      el.style.transform = `perspective(620px) rotateX(${(side * 32 * k).toFixed(2)}deg) scaleX(${(1 + 0.05 * k).toFixed(4)})`;
+      const kk = side < 0 ? k * Math.min(1, y / 200) : k;
+      el.style.transform = `perspective(620px) rotateX(${(side * 32 * kk).toFixed(2)}deg) scaleX(${(1 + 0.05 * kk).toFixed(4)})`;
     });
   }
   const queueCurve = () => { if (!curveRaf) curveRaf = requestAnimationFrame(updateCurve); };
