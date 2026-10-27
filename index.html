@@ -13,6 +13,7 @@
 </head>
 <body>
 <a class="skip" href="#main">Saltar al contenido</a>
+<div class="film-grain" aria-hidden="true"></div>
 <div class="glass-edge top" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 <div class="glass-edge bottom" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 
@@ -71,7 +72,10 @@
       <span><i class="g">G</i><b id="rgb-g">25.00</b></span>
       <span><i class="b">B</i><b id="rgb-b">25.00</b></span>
     </output>
-    <p class="grade-hint">Arrastra el punto para teñir el fondo. Doble clic en la rueda para volver al gris.</p>
+    <div class="grain-pick">
+      <span class="master-label" id="grain-label">Grano</span>
+      <div id="grain-pick"></div>
+    </div>
   </section>
 </div>
 

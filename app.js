@@ -233,6 +233,7 @@
     place(false);
     if ("ResizeObserver" in window) new ResizeObserver(() => place(false)).observe(seg);
     if (document.fonts) document.fonts.ready.then(() => place(false));
+    return { set: (v) => select(items.findIndex((it) => it.value === v)) };
   }
 
   function videoHTML(v, title) {
@@ -487,10 +488,10 @@
   window.addEventListener("hashchange", () => { setHidden(0); lastY = window.scrollY; });
 
   /* ---------- Rueda Offset: color de fondo ---------- */
-  const DEFAULT = { x: 0, y: 0, l: 25 / 255 };
+  const DEFAULT = { x: 0, y: 0, l: 25 / 255, grain: "50D" };
   const KEY = "idlc-offset";
   let state = { ...DEFAULT };
-  try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && typeof saved.l === "number") state = saved; } catch (e) {}
+  try { const saved = JSON.parse(localStorage.getItem(KEY)); if (saved && typeof saved.l === "number") state = { ...DEFAULT, ...saved }; } catch (e) {}
 
   const wheel = document.getElementById("wheel");
   const puck = document.getElementById("wheel-puck");
@@ -563,7 +564,57 @@
     if (e.key === "Home") { setOffset(0, 0); e.preventDefault(); }
   });
   master.addEventListener("input", () => { state.l = Number(master.value) / 100; apply(true); });
-  document.getElementById("grade-reset").addEventListener("click", () => { state = { ...DEFAULT }; apply(true); });
+  document.getElementById("grade-reset").addEventListener("click", () => { state = { ...DEFAULT }; apply(true); grainPick.set(state.grain); setGrain(state.grain); });
+
+  /* ---------- Grano del fondo: se genera una vez como textura de ruido ---------- */
+  // 50D: grano fino y suave. 500T: grano gordo y más marcado. Noise Reduction: sin grano
+  const GRAINS = {
+    "50D": { px: 1, amp: 30 },
+    "500T": { px: 2.2, amp: 58 },
+  };
+  const grainCache = {};
+  function grainTexture(name) {
+    if (grainCache[name]) return grainCache[name];
+    const { px, amp } = GRAINS[name];
+    const size = 256, n = Math.round(size / px);
+    const c = document.createElement("canvas");
+    c.width = c.height = n;
+    const ctx = c.getContext("2d"), img = ctx.createImageData(n, n), d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      // Ruido gris alrededor del gris medio (con soft-light, el gris medio no cambia el color del fondo).
+      // Va un pelín por debajo porque en fondos oscuros aclarar pesa más que oscurecer
+      const g = (Math.random() + Math.random() + Math.random() - 1.5) / 1.5;
+      const v = Math.max(0, Math.min(255, 121 + g * amp * 1.8));
+      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    let url = c.toDataURL("image/png");
+    if (px > 1) {
+      // Para el grano gordo se amplía la textura con suavizado, así los granos son manchitas y no píxeles
+      // Se añade un borde de píxeles repetidos del lado contrario para que la textura empalme sin costuras
+      const pad = document.createElement("canvas");
+      pad.width = pad.height = n + 2;
+      const pctx = pad.getContext("2d");
+      for (const dx of [-n, 0, n]) for (const dy of [-n, 0, n]) pctx.drawImage(c, 1 + dx, 1 + dy);
+      const big = document.createElement("canvas");
+      big.width = big.height = size;
+      const bctx = big.getContext("2d");
+      bctx.imageSmoothingEnabled = true; bctx.imageSmoothingQuality = "high";
+      const k = size / n;
+      bctx.drawImage(pad, -k, -k, (n + 2) * k, (n + 2) * k);
+      url = big.toDataURL("image/png");
+    }
+    return (grainCache[name] = `url(${url})`);
+  }
+  function setGrain(name) {
+    root.style.setProperty("--grain-img", GRAINS[name] ? grainTexture(name) : "none");
+    root.dataset.grain = GRAINS[name] ? name : "none";
+  }
+  const grainPick = makeDial(document.getElementById("grain-pick"),
+    [{ value: "50D", label: "50D" }, { value: "500T", label: "500T" }, { value: "none", label: "Noise Reduction" }],
+    state.grain, "Grano", (v) => { state.grain = v; setGrain(v); apply(true); });
+  document.getElementById("grain-pick").querySelector(".seg").setAttribute("aria-labelledby", "grain-label");
+  setGrain(state.grain);
 
   const toggle = document.getElementById("grade-toggle");
   const panel = document.getElementById("grade-panel");

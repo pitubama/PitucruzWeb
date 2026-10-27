@@ -25,6 +25,7 @@
 :root[data-tone="light"] { color-scheme: light; }
 
 *, *::before, *::after { box-sizing: border-box; }
+:root { --grain-img: none; --grain-size: 256px; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -340,7 +341,32 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .rgb i { font-style: normal; font-weight: 600; }
 .rgb b { font-weight: 400; color: #e8e7e4; }
 .rgb .r { color: var(--scope-r); } .rgb .g { color: var(--scope-g); } .rgb .b { color: var(--scope-b); }
-.grade-hint { margin: 10px 0 0; color: #8d8c89; font-size: 11px; }
+/* Grano: 50D fino, 500T grueso, Noise Reduction sin grano */
+.grain-pick { display: grid; gap: 6px; margin-top: 14px; }
+.grade-panel .seg-scroll { margin: 0; padding: 0; max-width: 100%; }
+.grade-panel .seg { border-color: #3b3b3f; background: #1a1a1c; }
+.grade-panel .seg-item { padding: .5em .95em; font-size: 11px; color: #a9a8a5; }
+.grade-panel .seg-item:hover { color: #fff; }
+.grade-panel .seg-thumb { background: #e8e7e4; }
+.grade-panel .seg-thumb .seg-item { color: #141414; }
+
+
+/* Grano de película sobre el color de fondo (detrás de todo el contenido, así no toca las fotos).
+   Se mueve a saltos, como el grano de verdad */
+.film-grain {
+  position: fixed; inset: -80px; z-index: -1; pointer-events: none;
+  background: var(--grain-img) 0 0 / var(--grain-size);
+  mix-blend-mode: soft-light;
+  animation: grain-shift 1s steps(1) infinite;
+}
+@keyframes grain-shift {
+  0% { transform: translate(0, 0); }       10% { transform: translate(-31px, 17px); }
+  20% { transform: translate(23px, -42px); } 30% { transform: translate(-54px, -9px); }
+  40% { transform: translate(12px, 51px); }  50% { transform: translate(-19px, -27px); }
+  60% { transform: translate(47px, 6px); }   70% { transform: translate(-8px, 38px); }
+  80% { transform: translate(36px, -21px); } 90% { transform: translate(-44px, 29px); }
+}
+@media (prefers-reduced-motion: reduce) { .film-grain { animation: none; } }
 
 /* Transición entre vistas */
 /* La página vieja se va antes de que llegue la nueva, para no mezclar textos;
@@ -406,13 +432,10 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .glass-edge i:nth-child(5) { --b: 12px; --s: 6%;  --e: 28%; }
   .glass-edge::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(var(--dir),
-      var(--bg) 0%,
-      color-mix(in srgb, var(--bg) 82%, transparent) 14%,
-      color-mix(in srgb, var(--bg) 55%, transparent) 34%,
-      color-mix(in srgb, var(--bg) 28%, transparent) 58%,
-      color-mix(in srgb, var(--bg) 9%, transparent) 80%,
-      transparent 100%);
+    background: var(--grain-img) 0 0 / var(--grain-size), var(--bg);
+    background-blend-mode: soft-light, normal;
+    --fade: linear-gradient(var(--dir), #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%);
+    -webkit-mask-image: var(--fade); mask-image: var(--fade);
   }
   /* Arriba del todo no hay nada que difuminar; el borde de arriba aparece al hacer scroll,
      por detrás de la cabecera, y asoma por su degradado */
@@ -433,8 +456,12 @@ a, button { -webkit-tap-highlight-color: transparent; }
     content: ""; position: absolute; z-index: -1; pointer-events: none;
     inset: 0 0 -56px;
     opacity: 0;
-    /* Opaca del todo detrás del nombre; el degradado empieza justo debajo de la cabecera */
-    background: linear-gradient(to bottom, var(--bg) 0, var(--bg) calc(100% - 56px), color-mix(in srgb, var(--bg) 70%, transparent) calc(100% - 36px), transparent 100%);
+    /* Opaca del todo detrás del nombre; el degradado empieza justo debajo de la cabecera.
+       Lleva el mismo grano que el fondo para que no se note una franja lisa */
+    background: var(--grain-img) 0 0 / var(--grain-size), var(--bg);
+    background-blend-mode: soft-light, normal;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 56px), rgba(0,0,0,.7) calc(100% - 36px), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 56px), rgba(0,0,0,.7) calc(100% - 36px), transparent 100%);
 
   }
   .brand { grid-column: 2; text-align: center; justify-items: center; }
@@ -524,7 +551,10 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 :root[data-tilt] { overflow: hidden; }
 .tilt-view { position: fixed; inset: 0; z-index: 200; cursor: zoom-out; touch-action: none; overscroll-behavior: contain; }
-.tilt-shade { position: absolute; inset: 0; background: var(--bg); opacity: var(--p, 0); }
+.tilt-shade {
+  position: absolute; inset: 0; opacity: var(--p, 0);
+  background: var(--grain-img) 0 0 / var(--grain-size), var(--bg); background-blend-mode: soft-light, normal;
+}
 .tilt-frame { position: absolute; left: 0; top: 0; margin: 0; transform-origin: 50% 50%; will-change: transform, width, height; }
 .tilt-frame img {
   display: block; width: 100%; height: 100%; object-fit: cover;
