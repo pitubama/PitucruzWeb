@@ -86,13 +86,13 @@
 
       <section class="section wrap" aria-labelledby="destacados-title">
         <div class="section-head">
-          <h2 class="section-title" id="destacados-title">Trabajo reciente</h2>
-          <a class="all-link" href="#trabajo">Ver todo el trabajo</a>
+          <h2 class="section-title" id="destacados-title">Trabajos recientes</h2>
+          <a class="all-link" href="#trabajo">Ver todos los trabajos</a>
         </div>
         <ul class="grid grid-featured">
           ${picks.map((p, i) => cardHTML(p, i, picks.length, i ? "w5" : "w7")).join("")}
         </ul>
-        <a class="all-link all-link-bottom" href="#trabajo">Ver todo el trabajo</a>
+        <a class="all-link all-link-bottom" href="#trabajo">Ver todos los trabajos</a>
       </section>
 
       <section class="section wrap" id="sobre-mi" aria-labelledby="sobre-title">
@@ -119,7 +119,7 @@
     main.innerHTML = `
       <section class="work wrap" aria-labelledby="trabajo-title">
         <div class="section-head">
-          <h1 class="work-title" id="trabajo-title">Trabajo</h1>
+          <h1 class="work-title" id="trabajo-title">Trabajos</h1>
           <div class="dials">
             <div class="dial-host" id="dial-top"></div>
             <div class="dial-sub" id="dial-sub-wrap"><div><div class="dial-host" id="dial-sub"></div></div></div>
@@ -254,7 +254,7 @@
     const credits = [["Tipo", p.category], ["Año", p.year], ...(p.camera ? [["Origen", p.camera]] : []), ...(p.credits || [])];
     main.innerHTML = `
       <article class="project wrap">
-        <a class="back" href="#trabajo">Todo el trabajo</a>
+        <a class="back" href="#trabajo">Todos los trabajos</a>
         <h1 class="project-title">${esc(p.title)}</h1>
         <div class="project-intro">
           <p class="project-summary">${esc(p.summary)}</p>
@@ -286,7 +286,7 @@
         // La animación del titular de portada solo se ve en la primera carga
         requestAnimationFrame(() => (root.dataset.loaded = ""));
       }
-      document.title = project ? `${project.title}, ${site.name}` : view === "work" ? `Trabajo, ${site.name}` : site.name;
+      document.title = project ? `${project.title}, ${site.name}` : view === "work" ? `Trabajos, ${site.name}` : site.name;
       const target = view === "home" && hash && document.getElementById(hash);
       if (target) target.scrollIntoView();
       else window.scrollTo(0, 0);

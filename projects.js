@@ -83,7 +83,7 @@ window.PROJECTS = [
 /* Datos generales de la web */
 window.SITE = {
   name: "Ismael de la Cruz",
-  role: "Colorista de cine digital",
+  role: "Colorista",
   city: "Madrid",
   tagline: "Color para cine, series, publicidad y videoclips.",
   email: "hola@ismaeldelacruz.com",
