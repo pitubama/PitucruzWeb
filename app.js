@@ -150,10 +150,10 @@
     // Dentro de la píldora hay una copia de las etiquetas en el color contrario que se desplaza al revés:
     // así el texto cambia de color justo por donde pasa el borde de la píldora
     const thumbLabels = thumb.firstElementChild;
-    const setThumb = (x, w) => {
+    const setThumb = (x, w, sy = 1) => {
       thumb.style.width = w + "px";
-      thumb.style.transform = `translateX(${x}px)`;
-      thumbLabels.style.transform = `translateX(${-x}px)`;
+      thumb.style.transform = `translateX(${x}px)` + (sy !== 1 ? ` scaleY(${sy.toFixed(3)})` : "");
+      thumbLabels.style.transform = `translateX(${-x}px)` + (sy !== 1 ? ` scaleY(${(1 / sy).toFixed(3)})` : "");
     };
     let index = Math.max(0, items.findIndex((it) => it.value === value));
 
@@ -163,7 +163,8 @@
       setThumb(b.offsetLeft, b.offsetWidth);
       buttons.forEach((x, j) => { x.setAttribute("aria-checked", String(j === index)); x.tabIndex = j === index ? 0 : -1; x.classList.toggle("is-near", j === index); });
       // Si no cabe entero (móvil), desliza la fila para que la opción elegida quede a la vista
-      const pad = 24, left = b.offsetLeft - pad, right = b.offsetLeft + b.offsetWidth + pad;
+      const br = b.getBoundingClientRect(), sr = scroller.getBoundingClientRect();
+      const pad = 24, left = scroller.scrollLeft + br.left - sr.left - pad, right = scroller.scrollLeft + br.right - sr.left + pad;
       if (left < scroller.scrollLeft) scroller.scrollTo({ left, behavior: animate ? "smooth" : "auto" });
       else if (right > scroller.scrollLeft + scroller.clientWidth) scroller.scrollTo({ left: right - scroller.clientWidth, behavior: animate ? "smooth" : "auto" });
     }
@@ -194,12 +195,18 @@
         thumb.classList.remove("is-moving");
       }
       const c = centers(), rect = seg.getBoundingClientRect();
-      const x = Math.max(c[0], Math.min(c[c.length - 1], e.clientX - rect.left));
+      const raw = e.clientX - rect.left;
+      const x = Math.max(c[0], Math.min(c[c.length - 1], raw));
+      const over = raw - x; // cuánto se ha pasado del tope
       let i = 0;
       while (i < c.length - 2 && x > c[i + 1]) i++;
       const t = c.length > 1 ? (x - c[i]) / (c[i + 1] - c[i]) : 0;
       const w = buttons[i].offsetWidth + (buttons[Math.min(i + 1, c.length - 1)].offsetWidth - buttons[i].offsetWidth) * t;
-      setThumb(x - w / 2, w);
+      if (over) {
+        // Pasado el tope se estira como un chicle: cada vez cuesta más y se adelgaza un poco
+        const pull = 26 * (1 - Math.exp(-Math.abs(over) / 70));
+        setThumb(over > 0 ? x - w / 2 : x - w / 2 - pull, w + pull, 1 - 0.14 * (pull / 26));
+      } else setThumb(x - w / 2, w);
       const near = t < 0.5 ? i : i + 1;
       if (near !== drag.near) {
         drag.near = near;
