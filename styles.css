@@ -351,22 +351,13 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .grade-panel .seg-thumb .seg-item { color: #141414; }
 
 
-/* Grano de película sobre el color de fondo (detrás de todo el contenido, así no toca las fotos).
-   Se mueve a saltos, como el grano de verdad */
+/* Grano de película sobre el color de fondo (detrás de todo el contenido, así no toca las fotos). Quieto */
 .film-grain {
-  position: fixed; inset: -80px; z-index: -1; pointer-events: none;
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: var(--grain-img) 0 0 / var(--grain-size);
   mix-blend-mode: soft-light;
-  animation: grain-shift 1s steps(1) infinite;
 }
-@keyframes grain-shift {
-  0% { transform: translate(0, 0); }       10% { transform: translate(-31px, 17px); }
-  20% { transform: translate(23px, -42px); } 30% { transform: translate(-54px, -9px); }
-  40% { transform: translate(12px, 51px); }  50% { transform: translate(-19px, -27px); }
-  60% { transform: translate(47px, 6px); }   70% { transform: translate(-8px, 38px); }
-  80% { transform: translate(36px, -21px); } 90% { transform: translate(-44px, 29px); }
-}
-@media (prefers-reduced-motion: reduce) { .film-grain { animation: none; } }
+
 
 /* Transición entre vistas */
 /* La página vieja se va antes de que llegue la nueva, para no mezclar textos;
