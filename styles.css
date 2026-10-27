@@ -160,7 +160,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .dial-sub .seg-thumb-labels { padding: 0 3px; }
 .dial-sub .seg-thumb .seg-item { color: var(--fg); }
 .dial-sub { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .4s var(--ease), opacity .3s ease; }
-.dial-sub > div { overflow: hidden; min-height: 0; }
+/* El recorte (necesario para que se despliegue) deja sitio a los lados para que la píldora se estire */
+.dial-sub > div { overflow: hidden; min-height: 0; margin: 0 -30px; padding: 0 30px; }
 .dial-sub.is-open { grid-template-rows: 1fr; opacity: 1; }
 .dial-sub .dial-host { padding-top: 8px; }
 
