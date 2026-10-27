@@ -4,6 +4,7 @@
 
   - slug:     identificador corto, sin espacios ni tildes (se usa en el enlace)
   - category: "Largometraje", "Cortometraje", "Publicidad", "Videoclip", "Serie"...
+              Largometraje, Cortometraje y Serie se agrupan en "Ficción" en la página de Trabajo
   - stills:   rutas a las imágenes dentro de /img. La primera es la portada.
   - video:    opcional. { provider: "vimeo" | "youtube", id: "..." }
               Vimeo:   https://vimeo.com/76979871          -> id "76979871"

@@ -33,7 +33,10 @@
   });
 
   /* ---------- Vistas ---------- */
-  let activeFilter = "Todo";
+  // Filtro de Trabajo: primer dial (Todo, Ficción, Publicidad...) y, dentro de Ficción, el segundo
+  const FICTION = ["Largometraje", "Cortometraje", "Serie"];
+  const PLURAL = { Largometraje: "Largometrajes", Cortometraje: "Cortos", Serie: "Series", Videoclip: "Videoclips", Documental: "Documentales" };
+  const activeFilter = { top: "Todo", sub: "Ficción" };
 
   function sizeFor(i, total) {
     // Ritmo de la rejilla: ancho completo, luego parejas 7/5 y 5/7
@@ -57,13 +60,16 @@
   }
 
   function renderGrid() {
-    const list = activeFilter === "Todo" ? projects : projects.filter((p) => p.category === activeFilter);
+    const { top, sub } = activeFilter;
+    const list = projects.filter((p) =>
+      top === "Todo" ? true
+      : top === "Ficción" ? (sub === "Ficción" ? FICTION.includes(p.category) : p.category === sub)
+      : p.category === top);
     const grid = document.getElementById("grid");
     grid.innerHTML = list.length
       ? list.map((p, i) => cardHTML(p, i, list.length)).join("")
       : `<li class="empty">Todavía no hay proyectos en esta categoría.</li>`;
     if (!reduceMotion) grid.querySelectorAll("li").forEach((li) => li.classList.add("reveal"));
-    document.querySelectorAll(".filters button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.filter === activeFilter)));
   }
 
   function featured() {
@@ -104,21 +110,140 @@
   }
 
   function renderWork() {
-    const categories = ["Todo", ...new Set(projects.map((p) => p.category))];
+    const cats = [...new Set(projects.map((p) => p.category))];
+    const fiction = FICTION.filter((c) => cats.includes(c));
+    const top = [{ value: "Todo", label: "Todo" }];
+    if (fiction.length) top.push({ value: "Ficción", label: "Ficción" });
+    cats.filter((c) => !FICTION.includes(c)).forEach((c) => top.push({ value: c, label: PLURAL[c] || c }));
+    const sub = [{ value: "Ficción", label: "Toda la ficción" }, ...fiction.map((c) => ({ value: c, label: PLURAL[c] || c }))];
     main.innerHTML = `
       <section class="work wrap" aria-labelledby="trabajo-title">
         <div class="section-head">
           <h1 class="work-title" id="trabajo-title">Trabajo</h1>
-          <ul class="filters" aria-label="Filtrar por tipo de proyecto">
-            ${categories.map((c) => `<li><button type="button" data-filter="${esc(c)}" aria-pressed="false">${esc(c)}</button></li>`).join("")}
-          </ul>
+        </div>
+        <div class="dials">
+          <div class="dial-host" id="dial-top"></div>
+          <div class="dial-sub" id="dial-sub-wrap"><div><div class="dial-host" id="dial-sub"></div></div></div>
         </div>
         <ul class="grid grid-all" id="grid"></ul>
       </section>`;
-    document.querySelectorAll(".filters button").forEach((b) =>
-      b.addEventListener("click", () => { activeFilter = b.dataset.filter; renderGrid(); })
-    );
+    const subWrap = document.getElementById("dial-sub-wrap");
+    const showSub = (on) => { subWrap.classList.toggle("is-open", on); subWrap.inert = !on; };
+    makeDial(document.getElementById("dial-top"), top, activeFilter.top, "Tipo de proyecto", (v) => {
+      activeFilter.top = v; showSub(v === "Ficción"); renderGrid();
+    });
+    makeDial(document.getElementById("dial-sub"), sub, activeFilter.sub, "Tipo de ficción", (v) => {
+      activeFilter.sub = v; renderGrid();
+    });
+    showSub(activeFilter.top === "Ficción");
     renderGrid();
+  }
+
+  /* ---------- Dial: las opciones van sobre el borde de una rueda que se gira arrastrando ---------- */
+  function makeDial(host, items, value, label, onChange) {
+    host.innerHTML = `<div class="dial" role="radiogroup" aria-label="${esc(label)}">
+        <div class="dial-wheel">
+          <div class="dial-ticks" aria-hidden="true"></div>
+          ${items.map((it, i) => `<button type="button" class="dial-item" role="radio" aria-checked="false" tabindex="-1" data-i="${i}"><span>${esc(it.label)}</span></button>`).join("")}
+        </div>
+        <span class="dial-mark" aria-hidden="true"></span>
+      </div>`;
+    const dial = host.firstElementChild, wheel = dial.querySelector(".dial-wheel");
+    const buttons = [...dial.querySelectorAll(".dial-item")];
+    let R = 600, step = 10, phi = 0, index = Math.max(0, items.findIndex((it) => it.value === value)), near = index;
+    const deg = 180 / Math.PI;
+
+    function layout() {
+      const w = dial.clientWidth || 360;
+      R = Math.max(480, w * 1.15);
+      // Separación: la etiqueta más larga más un margen, convertida en grados sobre la rueda
+      const widest = Math.max(...buttons.map((b) => b.firstElementChild.offsetWidth));
+      step = ((widest + 44) / R) * deg;
+      wheel.style.setProperty("--r", R + "px");
+      wheel.style.setProperty("--step", step + "deg");
+      buttons.forEach((b, i) => { b.style.transform = `translateX(-50%) rotate(${i * step}deg)`; });
+      setPhi(index * step, false);
+    }
+    function setPhi(p, animate) {
+      phi = p;
+      wheel.classList.toggle("is-snapping", !!animate);
+      wheel.style.transform = `rotate(${-phi}deg)`;
+      const n = Math.max(0, Math.min(items.length - 1, Math.round(phi / step)));
+      if (n !== near) {
+        near = n;
+        if (dragging && navigator.vibrate) navigator.vibrate(4); // un "clic" del dial en Android
+      }
+      buttons.forEach((b, i) => b.classList.toggle("is-near", i === near));
+    }
+    function select(i, focus) {
+      i = Number.isFinite(i) ? Math.max(0, Math.min(items.length - 1, i)) : index;
+      const changed = i !== index;
+      index = i;
+      buttons.forEach((b, j) => { b.setAttribute("aria-checked", String(j === i)); b.tabIndex = j === i ? 0 : -1; });
+      setPhi(i * step, true);
+      if (focus) buttons[i].focus({ preventScroll: true });
+      if (changed) onChange(items[i].value);
+    }
+
+    // Arrastrar: la rueda sigue al dedo y al soltar se encaja en la opción más cercana
+    let dragging = false, x0 = 0, phi0 = 0, moved = 0, lastX = 0, lastT = 0, vel = 0;
+    dial.addEventListener("pointerdown", (e) => {
+      if (e.button) return;
+      dragging = true; moved = 0; x0 = lastX = e.clientX; phi0 = phi; lastT = e.timeStamp; vel = 0;
+      wheel.classList.remove("is-snapping");
+    });
+    dial.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - x0;
+      if (Math.abs(dx) > 4 && !dial.hasPointerCapture(e.pointerId)) dial.setPointerCapture(e.pointerId);
+      moved = Math.max(moved, Math.abs(dx));
+      const dt = Math.max(1, e.timeStamp - lastT);
+      vel = vel * 0.6 + ((e.clientX - lastX) / dt) * 0.4; lastX = e.clientX; lastT = e.timeStamp;
+      let p = phi0 - (dx / R) * deg;
+      const max = (items.length - 1) * step;
+      // Más allá de los extremos se resiste, como un tope con muelle
+      if (p < 0) p *= 0.3; else if (p > max) p = max + (p - max) * 0.3;
+      setPhi(p, false);
+    });
+    const end = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      if (moved < 6) {
+        const hit = document.elementFromPoint(e.clientX, e.clientY);
+        const b = hit && hit.closest(".dial-item");
+        select(b && dial.contains(b) ? +b.dataset.i : index);
+        return;
+      }
+      // Un poco de inercia según la velocidad al soltar
+      const projected = phi - ((vel * 160) / R) * deg;
+      select(Math.round(projected / step));
+    };
+    dial.addEventListener("pointerup", end);
+    dial.addEventListener("pointercancel", end);
+    dial.addEventListener("click", (e) => { const b = e.target.closest(".dial-item"); if (b && e.detail === 0) select(+b.dataset.i); });
+    dial.addEventListener("keydown", (e) => {
+      const k = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
+      if (k) { e.preventDefault(); select(index + k, true); }
+      else if (e.key === "Home") { e.preventDefault(); select(0, true); }
+      else if (e.key === "End") { e.preventDefault(); select(items.length - 1, true); }
+    });
+    // Trackpad: desplazamiento horizontal
+    let wheelAcc = 0, wheelT = 0;
+    dial.addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      wheelAcc += e.deltaX;
+      clearTimeout(wheelT);
+      wheelT = setTimeout(() => { wheelAcc = 0; }, 180);
+      if (Math.abs(wheelAcc) > 60) { select(index + Math.sign(wheelAcc)); wheelAcc = 0; }
+    }, { passive: false });
+
+    // Que el foco o el navegador nunca desplacen el interior del dial
+    dial.addEventListener("scroll", () => { dial.scrollTop = dial.scrollLeft = 0; });
+    buttons.forEach((b, j) => { b.setAttribute("aria-checked", String(j === index)); b.tabIndex = j === index ? 0 : -1; });
+    layout();
+    if ("ResizeObserver" in window) new ResizeObserver(() => layout()).observe(dial);
+    if (document.fonts) document.fonts.ready.then(layout);
   }
 
   function videoHTML(v, title) {

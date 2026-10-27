@@ -109,12 +109,71 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .work-title {
   margin: 0; font-family: var(--display); font-size: var(--step-3); font-weight: 200; line-height: .95; letter-spacing: -.03em;
 }
-.filters { display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; list-style: none; }
-.filters button {
-  background: none; border: 1px solid var(--line); border-radius: 999px;
-  padding: .3em .9em; font-size: var(--step--1); color: var(--muted); cursor: pointer;
+/* Dial de filtros: una rueda grande de la que solo asoma el borde de arriba, con marcas como un
+   anillo de enfoque. La opción que queda bajo la marca central es la elegida */
+.dials { max-width: 760px; margin: 0 auto clamp(28px, 4vw, 52px); }
+.dial {
+  position: relative; height: 92px; overflow: hidden; overflow: clip;
+  touch-action: pan-y; user-select: none; -webkit-user-select: none; cursor: grab;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 22%, #000 78%, transparent);
 }
-.filters button[aria-pressed="true"] { color: var(--bg); background: var(--fg); border-color: var(--fg); }
+.dial:active { cursor: grabbing; }
+.dial-wheel {
+  position: absolute; left: 50%; top: 12px;
+  width: calc(var(--r) * 2); height: calc(var(--r) * 2); margin-left: calc(var(--r) * -1);
+  border-radius: 50%; will-change: transform;
+}
+.dial-wheel.is-snapping { transition: transform .55s cubic-bezier(.2, .8, .2, 1); }
+/* Marcas: una larga en cada opción y tres cortas entre medias */
+.dial-ticks, .dial-ticks::before {
+  position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+}
+.dial-ticks {
+  background: repeating-conic-gradient(from -0.1deg, var(--fg) 0 .2deg, transparent .2deg var(--step));
+  -webkit-mask-image: radial-gradient(circle closest-side, transparent calc(100% - 12px), #000 calc(100% - 12px));
+  mask-image: radial-gradient(circle closest-side, transparent calc(100% - 12px), #000 calc(100% - 12px));
+  opacity: .6;
+}
+.dial-ticks::before {
+  content: "";
+  background: repeating-conic-gradient(from -0.07deg, var(--fg) 0 .14deg, transparent .14deg calc(var(--step) / 4));
+  -webkit-mask-image: radial-gradient(circle closest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
+  mask-image: radial-gradient(circle closest-side, transparent calc(100% - 6px), #000 calc(100% - 6px));
+  opacity: .6;
+}
+.dial-item {
+  position: absolute; left: 50%; top: 0; height: var(--r);
+  transform-origin: 50% 100%;
+  display: flex; justify-content: center; align-items: flex-start;
+  padding: 22px 0 0; margin: 0; border: 0; background: none; cursor: inherit;
+  color: var(--muted); font: inherit;
+  transition: color .3s ease;
+}
+.dial-item span {
+  display: block; white-space: nowrap;
+  font-family: var(--display); font-style: italic; font-weight: 300; font-size: 1.3rem; line-height: 1.2;
+  padding: .1em .2em; transition: transform .35s var(--ease);
+}
+.dial-item.is-near { color: var(--fg); }
+.dial-item.is-near span { transform: scale(1.08); }
+.dial-item:focus-visible { outline: none; }
+.dial-item:focus-visible span { outline: 1px solid var(--muted); outline-offset: 4px; border-radius: 4px; }
+/* Marca fija arriba en el centro */
+.dial-mark {
+  position: absolute; left: 50%; top: 0; width: 1px; height: 16px; margin-left: -.5px;
+  background: var(--fg); pointer-events: none;
+}
+.dial-mark::after {
+  content: ""; position: absolute; left: 50%; top: 0; width: 5px; height: 5px; margin-left: -2.5px;
+  border-radius: 50%; background: var(--fg);
+}
+/* El segundo dial se despliega debajo cuando se elige Ficción */
+.dial-sub { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .5s var(--ease), opacity .35s ease; }
+.dial-sub > div { overflow: hidden; min-height: 0; }
+.dial-sub.is-open { grid-template-rows: 1fr; opacity: 1; }
+.dial-sub .dial { height: 80px; margin-top: 4px; }
+.dial-sub .dial-item span { font-size: 1.05rem; font-style: normal; font-family: var(--font); }
 
 .grid {
   display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -454,13 +513,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
   }
   .section-title { font-size: 2rem; }
 
-  .filters {
-    flex-wrap: nowrap; overflow-x: auto; width: calc(100% + 2 * var(--gutter));
-    margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter);
-    scrollbar-width: none;
-  }
-  .filters::-webkit-scrollbar { display: none; }
-  .filters button { white-space: nowrap; }
+  .dials { margin-inline: calc(-1 * var(--gutter)); }
 
   .card-frame { aspect-ratio: 1.85 / 1; }
   .card-text { flex-direction: column; gap: .1rem; }
