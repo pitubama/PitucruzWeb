@@ -72,9 +72,9 @@
     if (!reduceMotion) grid.querySelectorAll("li").forEach((li) => li.classList.add("reveal"));
   }
 
+  // Carrusel de la portada: primero los marcados como destacados y luego el resto
   function featured() {
-    const marked = projects.filter((p) => p.featured);
-    return (marked.length ? marked : projects).slice(0, 2);
+    return [...projects.filter((p) => p.featured), ...projects.filter((p) => !p.featured)];
   }
 
   function renderHome() {
@@ -89,8 +89,8 @@
           <h2 class="section-title" id="destacados-title">Trabajos recientes</h2>
           <a class="all-link" href="#trabajo">Ver todos los trabajos</a>
         </div>
-        <ul class="grid grid-featured">
-          ${picks.map((p, i) => cardHTML(p, i, picks.length, i ? "w5" : "w7")).join("")}
+        <ul class="rail" id="rail" aria-label="Trabajos recientes. Arrastra o desliza para ver más">
+          ${picks.map((p, i) => cardHTML(p, i, picks.length, "slide")).join("")}
         </ul>
         <a class="all-link all-link-bottom" href="#trabajo">Ver todos los trabajos</a>
       </section>
@@ -107,6 +107,64 @@
           <div class="about-text">${(site.about || []).map((t) => `<p>${esc(t)}</p>`).join("")}</div>
         </div>
       </section>`;
+    makeRail(document.getElementById("rail"));
+  }
+
+  /* ---------- Carrusel: con ratón se arrastra (con inercia y un poco de chicle en los extremos);
+     con el dedo o el trackpad se desliza de forma nativa y encaja en cada trabajo ---------- */
+  function makeRail(rail) {
+    let drag = null, moved = false, raf = 0;
+    const max = () => rail.scrollWidth - rail.clientWidth;
+    const stops = () => [...rail.children].map((li) => Math.min(max(), li.offsetLeft - rail.firstElementChild.offsetLeft));
+    const setPull = (px) => { rail.style.transform = px ? `translateX(${px.toFixed(1)}px)` : ""; };
+    rail.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button) return;
+      cancelAnimationFrame(raf);
+      drag = { x: e.clientX, left: rail.scrollLeft, v: 0, lx: e.clientX, lt: performance.now(), active: false };
+      moved = false;
+    });
+    rail.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x;
+      if (!drag.active) {
+        if (Math.abs(dx) < 5) return;
+        drag.active = moved = true; rail.setPointerCapture(e.pointerId); rail.classList.add("is-dragging");
+        rail.style.transition = "";
+      }
+      const now = performance.now(), dt = Math.max(1, now - drag.lt);
+      drag.v = 0.8 * ((e.clientX - drag.lx) / dt) + 0.2 * drag.v; drag.lx = e.clientX; drag.lt = now;
+      const want = drag.left - dx, m = max();
+      rail.scrollLeft = Math.max(0, Math.min(m, want));
+      // Pasado el principio o el final, el carrusel se estira un poco como un chicle
+      const over = want < 0 ? want : want > m ? want - m : 0;
+      setPull(over ? -Math.sign(over) * 60 * (1 - Math.exp(-Math.abs(over) / 160)) : 0);
+    });
+    const end = () => {
+      if (!drag) return;
+      const d = drag; drag = null;
+      if (!d.active) return;
+      rail.style.transition = "transform .6s cubic-bezier(.34, 1.45, .5, 1)";
+      setPull(0);
+      // Encaja en el trabajo más cercano a donde iría con la inercia del gesto
+      const goal = rail.scrollLeft - d.v * 260;
+      const s = stops(); let best = s[0];
+      s.forEach((x) => { if (Math.abs(x - goal) < Math.abs(best - goal)) best = x; });
+      const from = rail.scrollLeft, t0 = performance.now(), dur = 650;
+      const step = (now) => {
+        const u = Math.min(1, (now - t0) / dur), k = 1 - Math.pow(1 - u, 3);
+        rail.scrollLeft = from + (best - from) * k;
+        if (u < 1) raf = requestAnimationFrame(step);
+        else rail.classList.remove("is-dragging");
+      };
+      raf = requestAnimationFrame(step);
+    };
+    rail.addEventListener("pointerup", end);
+    rail.addEventListener("pointercancel", end);
+    // Si se ha arrastrado, soltar encima de un trabajo no lo abre
+    rail.addEventListener("click", (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+    rail.addEventListener("dragstart", (e) => e.preventDefault());
+    // La curvatura se mide con la posición de cada foto: al deslizar hay que volver a medir
+    rail.addEventListener("scroll", () => queueMeasure(120), { passive: true });
   }
 
   function renderWork() {
@@ -290,7 +348,7 @@
       const target = view === "home" && hash && document.getElementById(hash);
       if (target) target.scrollIntoView();
       else window.scrollTo(0, 0);
-      document.querySelectorAll(".site-nav a").forEach((a) => a.toggleAttribute("aria-current", a.getAttribute("href") === "#" + hash));
+      document.querySelectorAll(".site-nav a, .quick-nav a").forEach((a) => a.toggleAttribute("aria-current", a.getAttribute("href") === "#" + hash));
     };
     const changesView = view !== currentView && currentView !== null;
     // En móvil: fundido sencillo y rápido del contenido; la cabecera no se toca
@@ -348,6 +406,31 @@
   document.getElementById("site-nav").addEventListener("click", (e) => { if (e.target.closest("a") || e.target.id === "site-nav") setMenu(false); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && head.hasAttribute("data-open")) { setMenu(false); menuBtn.focus(); } });
   document.addEventListener("pointerdown", (e) => { if (head.hasAttribute("data-open") && !head.contains(e.target)) setMenu(false); });
+
+  /* Escritorio: al bajar, el menú se recoge en un botón de tres barras que siempre queda a mano */
+  const quick = document.getElementById("quick");
+  const quickBtn = document.getElementById("quick-btn");
+  const setQuick = (open) => {
+    quick.toggleAttribute("data-open", open);
+    quickBtn.setAttribute("aria-expanded", String(open));
+    quickBtn.setAttribute("aria-label", open ? "Cerrar menú" : "Menú");
+  };
+  const updateCompact = () => {
+    const on = !mobile.matches && window.scrollY > head.offsetHeight * 0.9;
+    if (on !== root.hasAttribute("data-compact")) {
+      root.toggleAttribute("data-compact", on);
+      quickBtn.tabIndex = on ? 0 : -1;
+      if (!on) setQuick(false);
+    }
+  };
+  quickBtn.addEventListener("click", () => setQuick(!quick.hasAttribute("data-open")));
+  quick.querySelector(".quick-nav").addEventListener("click", (e) => { if (e.target.closest("a")) setQuick(false); });
+  document.addEventListener("pointerdown", (e) => { if (quick.hasAttribute("data-open") && !quick.contains(e.target)) setQuick(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && quick.hasAttribute("data-open")) { setQuick(false); quickBtn.focus(); } });
+  window.addEventListener("scroll", updateCompact, { passive: true });
+  window.addEventListener("resize", updateCompact);
+  quickBtn.tabIndex = -1;
+  updateCompact();
 
   // Al bajar, la cabecera se va desvaneciendo y subiendo al ritmo del scroll; al subir, vuelve igual
   let hidden = 0, lastY = window.scrollY;
