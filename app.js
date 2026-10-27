@@ -120,10 +120,10 @@
       <section class="work wrap" aria-labelledby="trabajo-title">
         <div class="section-head">
           <h1 class="work-title" id="trabajo-title">Trabajo</h1>
-        </div>
-        <div class="dials">
-          <div class="dial-host" id="dial-top"></div>
-          <div class="dial-sub" id="dial-sub-wrap"><div><div class="dial-host" id="dial-sub"></div></div></div>
+          <div class="dials">
+            <div class="dial-host" id="dial-top"></div>
+            <div class="dial-sub" id="dial-sub-wrap"><div><div class="dial-host" id="dial-sub"></div></div></div>
+          </div>
         </div>
         <ul class="grid grid-all" id="grid"></ul>
       </section>`;
@@ -139,33 +139,37 @@
     renderGrid();
   }
 
-  /* ---------- Dial: una regla recta con las opciones que se desliza arrastrando ---------- */
+  /* ---------- Dial: las opciones van sobre el borde de una rueda que se gira arrastrando ---------- */
   function makeDial(host, items, value, label, onChange) {
     host.innerHTML = `<div class="dial" role="radiogroup" aria-label="${esc(label)}">
-        <div class="dial-track">
+        <div class="dial-wheel">
           <div class="dial-ticks" aria-hidden="true"></div>
           ${items.map((it, i) => `<button type="button" class="dial-item" role="radio" aria-checked="false" tabindex="-1" data-i="${i}"><span>${esc(it.label)}</span></button>`).join("")}
         </div>
         <span class="dial-mark" aria-hidden="true"></span>
       </div>`;
-    const dial = host.firstElementChild, track = dial.querySelector(".dial-track");
+    const dial = host.firstElementChild, wheel = dial.querySelector(".dial-wheel");
     const buttons = [...dial.querySelectorAll(".dial-item")];
-    // phi: cuánto se ha desplazado la regla, en píxeles; step: distancia entre opciones
-    let step = 120, phi = 0, index = Math.max(0, items.findIndex((it) => it.value === value)), near = index;
+    let R = 600, step = 10, phi = 0, index = Math.max(0, items.findIndex((it) => it.value === value)), near = index;
+    const deg = 180 / Math.PI;
 
     function layout() {
-      // Separación: la etiqueta más larga más un margen
+      const w = dial.clientWidth || 360;
+      // Rueda grande para que la curva sea suave
+      R = Math.max(950, w * 2.6);
+      // Separación: la etiqueta más larga más un margen, convertida en grados sobre la rueda
       const widest = Math.max(...buttons.map((b) => b.firstElementChild.offsetWidth));
-      step = Math.round(widest + 36);
-      track.style.setProperty("--s", step + "px");
-      track.style.setProperty("--n", items.length);
-      buttons.forEach((b, i) => { b.style.left = i * step + "px"; });
+      step = ((widest + 44) / R) * deg;
+      wheel.style.setProperty("--r", R + "px");
+      wheel.style.setProperty("--step", step + "deg");
+      wheel.style.setProperty("--tw", (1.3 / R) * deg + "deg"); // marcas de 1,3 px de ancho, sea cual sea el radio
+      buttons.forEach((b, i) => { b.style.transform = `translateX(-50%) rotate(${i * step}deg)`; });
       setPhi(index * step, false);
     }
     function setPhi(p, animate) {
       phi = p;
-      track.classList.toggle("is-snapping", !!animate);
-      track.style.transform = `translateX(${(-phi).toFixed(1)}px)`;
+      wheel.classList.toggle("is-snapping", !!animate);
+      wheel.style.transform = `rotate(${-phi}deg)`;
       const n = Math.max(0, Math.min(items.length - 1, Math.round(phi / step)));
       if (n !== near) {
         near = n;
@@ -183,12 +187,12 @@
       if (changed) onChange(items[i].value);
     }
 
-    // Arrastrar: la regla sigue al dedo y al soltar se encaja en la opción más cercana
+    // Arrastrar: la rueda sigue al dedo y al soltar se encaja en la opción más cercana
     let dragging = false, x0 = 0, phi0 = 0, moved = 0, lastX = 0, lastT = 0, vel = 0;
     dial.addEventListener("pointerdown", (e) => {
       if (e.button) return;
       dragging = true; moved = 0; x0 = lastX = e.clientX; phi0 = phi; lastT = e.timeStamp; vel = 0;
-      track.classList.remove("is-snapping");
+      wheel.classList.remove("is-snapping");
     });
     dial.addEventListener("pointermove", (e) => {
       if (!dragging) return;
@@ -197,7 +201,7 @@
       moved = Math.max(moved, Math.abs(dx));
       const dt = Math.max(1, e.timeStamp - lastT);
       vel = vel * 0.6 + ((e.clientX - lastX) / dt) * 0.4; lastX = e.clientX; lastT = e.timeStamp;
-      let p = phi0 - dx;
+      let p = phi0 - (dx / R) * deg;
       const max = (items.length - 1) * step;
       // Más allá de los extremos se resiste, como un tope con muelle
       if (p < 0) p *= 0.3; else if (p > max) p = max + (p - max) * 0.3;
@@ -213,7 +217,7 @@
         return;
       }
       // Un poco de inercia según la velocidad al soltar
-      const projected = phi - vel * 160;
+      const projected = phi - ((vel * 160) / R) * deg;
       select(Math.round(projected / step));
     };
     dial.addEventListener("pointerup", end);
