@@ -298,7 +298,7 @@
   /* Móvil con el giro de pantalla bloqueado: al tumbar el teléfono, la foto más centrada gira con él
      (sigue al giroscopio) y crece hasta ocupar la pantalla en horizontal; el resto se desvanece.
      Si el giro no está bloqueado la pantalla rota sola y aquí no pasa nada. */
-  const tilt = { el: null, frame: null, box: null, from: null, p: 0, angle: 0, unlocked: false, dismissed: false, lockedSince: 0, raf: 0 };
+  const tilt = { el: null, frame: null, box: null, from: null, p: 0, tp: 0, angle: 0, ta: 0, last: 0, unlocked: false, dismissed: false, lockedSince: 0, raf: 0 };
   function tiltScreenAngle() {
     const a = screen.orientation && typeof screen.orientation.angle === "number" ? screen.orientation.angle : (window.orientation || 0);
     return ((a % 360) + 360) % 360;
@@ -336,24 +336,35 @@
   function tiltClose() {
     if (!tilt.el) return;
     tilt.el.remove(); tilt.box.style.visibility = "";
-    tilt.el = tilt.frame = tilt.box = null; tilt.p = 0;
+    tilt.el = tilt.frame = tilt.box = null; tilt.p = tilt.tp = 0;
+    if (tilt.raf) { cancelAnimationFrame(tilt.raf); tilt.raf = 0; }
     root.removeAttribute("data-tilt");
   }
-  function tiltRender() {
+  // Bucle de animación: avanza hacia el giro y el tamaño objetivo con un suavizado por tiempo,
+  // así el movimiento es fluido aunque el giroscopio mande datos a saltos
+  function tiltRender(now) {
     tilt.raf = 0;
-    const { el, frame, from, p, angle } = tilt;
+    const { el, frame, from } = tilt;
     if (!el) return;
+    const dt = Math.min(64, now - (tilt.last || now)); tilt.last = now;
+    const k = 1 - Math.exp(-dt / 110);
+    tilt.p += (tilt.tp - tilt.p) * k;
+    tilt.angle += (tilt.ta - tilt.angle) * k;
+    if (tilt.tp === 0 && tilt.p < 0.004) { tiltClose(); return; }
+    const p = tilt.p, e = p * p * (3 - 2 * p);
+    // El giro de la foto entra poco a poco: al empezar no gira nada y en cuanto crece un poco ya va recta con el suelo
+    const r = Math.min(1, p / 0.55), rot = tilt.angle * r * r * (3 - 2 * r);
     const vw = window.innerWidth, vh = window.innerHeight;
     // Tamaño final: la foto entera, tumbada, lo más grande que quepa dejando sitio al pie con el título
     const W = Math.min(vh * 0.92, (vw - 112) * tilt.ratio), H = W / tilt.ratio;
-    const e = p * p * (3 - 2 * p);
     const w = from.width + (W - from.width) * e, h = from.height + (H - from.height) * e;
     const x = from.left + from.width / 2 + (vw / 2 - from.left - from.width / 2) * e;
     const y = from.top + from.height / 2 + (vh / 2 - from.top - from.height / 2) * e;
     frame.style.width = w + "px"; frame.style.height = h + "px";
-    frame.style.transform = `translate(${x - w / 2}px, ${y - h / 2}px) rotate(${angle.toFixed(2)}deg)`;
+    frame.style.transform = `translate(${x - w / 2}px, ${y - h / 2}px) rotate(${rot.toFixed(2)}deg)`;
     el.style.setProperty("--p", e.toFixed(3));
     root.toggleAttribute("data-tilt", e > 0.98);
+    tilt.raf = requestAnimationFrame(tiltRender);
   }
   function tiltUpdate(theta) {
     // theta: cuánto está girado el teléfono respecto a la pantalla, en grados (+ = hacia la izquierda)
@@ -366,14 +377,15 @@
     else tilt.lockedSince = 0;
     if (Math.abs(eff) < 20) tilt.dismissed = false;
     // Si ya hemos visto girar la pantalla sola, no se empieza hasta confirmar que ahora está bloqueada
-    const target = tilt.unlocked || tilt.dismissed ? 0 : Math.max(0, Math.min(1, (Math.abs(a) - 14) / 62));
+    const target = tilt.unlocked || tilt.dismissed ? 0 : Math.max(0, Math.min(1, (Math.abs(a) - 12) / 64));
     const usable = mobile.matches && !root.hasAttribute("data-menu") && /^(home|work|project)$/.test(root.dataset.view || "");
-    if (!usable || (target === 0 && !tilt.el)) { if (tilt.el && !usable) tiltClose(); return; }
-    if (!tilt.el) { const img = tiltPick(); if (!img) return; tiltOpen(img); tilt.angle = a; }
-    // Suavizado para que el giro no tiemble
-    tilt.p += (target - tilt.p) * 0.35;
-    tilt.angle += (a - tilt.angle) * 0.35;
-    if (tilt.p < 0.01 && target === 0) { tiltClose(); return; }
+    if (!usable) { if (tilt.el) tiltClose(); return; }
+    if (!tilt.el) {
+      if (target === 0) return;
+      const img = tiltPick(); if (!img) return;
+      tiltOpen(img); tilt.p = 0; tilt.angle = a; tilt.last = 0;
+    }
+    tilt.tp = target; tilt.ta = a;
     if (!tilt.raf) tilt.raf = requestAnimationFrame(tiltRender);
   }
   function onOrientation(e) {
@@ -396,7 +408,8 @@
   if (screen.orientation) screen.orientation.addEventListener("change", onScreenTurn);
   else window.addEventListener("orientationchange", onScreenTurn);
   window.addEventListener("hashchange", tiltClose);
-  window.addEventListener("scroll", () => { if (tilt.el && tilt.p < 0.2) tiltClose(); }, { passive: true });
+  // Si se hace scroll cuando apenas ha empezado, se deshace con suavidad
+  window.addEventListener("scroll", () => { if (tilt.el && tilt.p < 0.2) { tilt.dismissed = true; tilt.tp = 0; } }, { passive: true });
 
   mobile.addEventListener("change", () => { setHidden(0); setMenu(false); });
   window.addEventListener("hashchange", () => { setHidden(0); lastY = window.scrollY; });
