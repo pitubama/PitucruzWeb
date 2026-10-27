@@ -473,9 +473,14 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .grade-toggle { width: 46px; height: 46px; }
 }
 
-/* Vista tumbada (móvil con el giro bloqueado): la foto centrada gira con el teléfono */
-.tilt-view { position: fixed; inset: 0; z-index: 200; pointer-events: none; touch-action: none; overscroll-behavior: contain; }
-:root[data-tilt] .tilt-view { pointer-events: auto; }
+/* Vista tumbada (móvil): al tocar un fotograma gira 90° y ocupa la pantalla */
+.media-hint { display: none; }
+@media (max-width: 759px) {
+  .media-hint { display: block; margin: 0 0 .8rem; font-size: .8rem; color: var(--muted); }
+  .media > img { cursor: zoom-in; }
+}
+:root[data-tilt] { overflow: hidden; }
+.tilt-view { position: fixed; inset: 0; z-index: 200; cursor: zoom-out; touch-action: none; overscroll-behavior: contain; }
 .tilt-shade { position: absolute; inset: 0; background: var(--bg); opacity: var(--p, 0); }
 .tilt-frame { position: absolute; left: 0; top: 0; margin: 0; transform-origin: 50% 50%; will-change: transform, width, height; }
 .tilt-frame img {
