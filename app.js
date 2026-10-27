@@ -139,35 +139,33 @@
     renderGrid();
   }
 
-  /* ---------- Dial: las opciones van sobre el borde de una rueda que se gira arrastrando ---------- */
+  /* ---------- Dial: una regla recta con las opciones que se desliza arrastrando ---------- */
   function makeDial(host, items, value, label, onChange) {
     host.innerHTML = `<div class="dial" role="radiogroup" aria-label="${esc(label)}">
-        <div class="dial-wheel">
+        <div class="dial-track">
           <div class="dial-ticks" aria-hidden="true"></div>
           ${items.map((it, i) => `<button type="button" class="dial-item" role="radio" aria-checked="false" tabindex="-1" data-i="${i}"><span>${esc(it.label)}</span></button>`).join("")}
         </div>
         <span class="dial-mark" aria-hidden="true"></span>
       </div>`;
-    const dial = host.firstElementChild, wheel = dial.querySelector(".dial-wheel");
+    const dial = host.firstElementChild, track = dial.querySelector(".dial-track");
     const buttons = [...dial.querySelectorAll(".dial-item")];
-    let R = 600, step = 10, phi = 0, index = Math.max(0, items.findIndex((it) => it.value === value)), near = index;
-    const deg = 180 / Math.PI;
+    // phi: cuánto se ha desplazado la regla, en píxeles; step: distancia entre opciones
+    let step = 120, phi = 0, index = Math.max(0, items.findIndex((it) => it.value === value)), near = index;
 
     function layout() {
-      const w = dial.clientWidth || 360;
-      R = Math.max(480, w * 1.15);
-      // Separación: la etiqueta más larga más un margen, convertida en grados sobre la rueda
+      // Separación: la etiqueta más larga más un margen
       const widest = Math.max(...buttons.map((b) => b.firstElementChild.offsetWidth));
-      step = ((widest + 44) / R) * deg;
-      wheel.style.setProperty("--r", R + "px");
-      wheel.style.setProperty("--step", step + "deg");
-      buttons.forEach((b, i) => { b.style.transform = `translateX(-50%) rotate(${i * step}deg)`; });
+      step = Math.round(widest + 36);
+      track.style.setProperty("--s", step + "px");
+      track.style.setProperty("--n", items.length);
+      buttons.forEach((b, i) => { b.style.left = i * step + "px"; });
       setPhi(index * step, false);
     }
     function setPhi(p, animate) {
       phi = p;
-      wheel.classList.toggle("is-snapping", !!animate);
-      wheel.style.transform = `rotate(${-phi}deg)`;
+      track.classList.toggle("is-snapping", !!animate);
+      track.style.transform = `translateX(${(-phi).toFixed(1)}px)`;
       const n = Math.max(0, Math.min(items.length - 1, Math.round(phi / step)));
       if (n !== near) {
         near = n;
@@ -185,12 +183,12 @@
       if (changed) onChange(items[i].value);
     }
 
-    // Arrastrar: la rueda sigue al dedo y al soltar se encaja en la opción más cercana
+    // Arrastrar: la regla sigue al dedo y al soltar se encaja en la opción más cercana
     let dragging = false, x0 = 0, phi0 = 0, moved = 0, lastX = 0, lastT = 0, vel = 0;
     dial.addEventListener("pointerdown", (e) => {
       if (e.button) return;
       dragging = true; moved = 0; x0 = lastX = e.clientX; phi0 = phi; lastT = e.timeStamp; vel = 0;
-      wheel.classList.remove("is-snapping");
+      track.classList.remove("is-snapping");
     });
     dial.addEventListener("pointermove", (e) => {
       if (!dragging) return;
@@ -199,7 +197,7 @@
       moved = Math.max(moved, Math.abs(dx));
       const dt = Math.max(1, e.timeStamp - lastT);
       vel = vel * 0.6 + ((e.clientX - lastX) / dt) * 0.4; lastX = e.clientX; lastT = e.timeStamp;
-      let p = phi0 - (dx / R) * deg;
+      let p = phi0 - dx;
       const max = (items.length - 1) * step;
       // Más allá de los extremos se resiste, como un tope con muelle
       if (p < 0) p *= 0.3; else if (p > max) p = max + (p - max) * 0.3;
@@ -215,7 +213,7 @@
         return;
       }
       // Un poco de inercia según la velocidad al soltar
-      const projected = phi - ((vel * 160) / R) * deg;
+      const projected = phi - vel * 160;
       select(Math.round(projected / step));
     };
     dial.addEventListener("pointerup", end);
