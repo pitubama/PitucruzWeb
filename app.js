@@ -330,6 +330,12 @@
 
   /* ---------- Router por hash: #trabajo, #p-slug, o portada ---------- */
   let currentView = null;
+  // Se rellena más abajo (curvatura): se llama justo después de pintar una página nueva
+  let onPaint = () => {};
+  // Al cambiar de página los bordes (desenfoque y fundido) se apagan y vuelven a aparecer suaves
+  let edgesT = 0;
+  const edgesOff = () => { clearTimeout(edgesT); root.setAttribute("data-edges-off", ""); };
+  const edgesOn = (ms) => { clearTimeout(edgesT); edgesT = setTimeout(() => root.removeAttribute("data-edges-off"), ms); };
   function route() {
     const hash = decodeURIComponent(location.hash.slice(1));
     const project = hash.startsWith("p-") ? bySlug(hash.slice(2)) : null;
@@ -348,6 +354,8 @@
       const target = view === "home" && hash && document.getElementById(hash);
       if (target) target.scrollIntoView();
       else window.scrollTo(0, 0);
+      // La curvatura se calcula ya, antes de que se vea la página: así no entra plana y luego salta
+      onPaint();
       document.querySelectorAll(".site-nav a, .quick-nav a").forEach((a) => a.toggleAttribute("aria-current", a.getAttribute("href") === "#" + hash));
     };
     const changesView = view !== currentView && currentView !== null;
@@ -357,7 +365,9 @@
       main.classList.remove("is-entering");
       main.classList.add("is-leaving");
       route.t = setTimeout(() => {
+        edgesOff();
         paint();
+        edgesOn(200);
         main.classList.remove("is-leaving");
         void main.offsetWidth;
         main.classList.add("is-entering");
@@ -369,7 +379,9 @@
       const before = new Set([...document.querySelectorAll("[data-vt]")].map((el) => el.dataset.vt));
       root.dataset.transition = view === "work" ? "to-work" : "page";
       const t = document.startViewTransition(() => {
+        edgesOff();
         paint();
+        edgesOn(450);
         document.querySelectorAll(".grid li").forEach((li) => {
           const frame = li.querySelector("[data-vt]");
           if (!frame) return;
@@ -378,17 +390,25 @@
         });
       });
       t.finished.finally(() => {
+        edgesOn(0);
         delete root.dataset.transition;
         document.querySelectorAll("[data-vt]").forEach((el) => (el.style.viewTransitionName = el.dataset.vt));
       });
     } else paint();
   }
   window.addEventListener("hashchange", route);
-  document.querySelector("[data-home]").addEventListener("click", (e) => {
+  // La marca y "Inicio" llevan a la portada; si ya estás en ella, la página sube sola hasta arriba
+  document.querySelectorAll("[data-home]").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault();
+    if (currentView === "home") {
+      if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+      window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+      document.querySelectorAll(".site-nav a, .quick-nav a").forEach((x) => x.toggleAttribute("aria-current", x.getAttribute("href") === "#"));
+      return;
+    }
     if (location.hash) history.pushState(null, "", location.pathname + location.search);
     route();
-  });
+  }));
   route();
 
   /* ---------- Cabecera en móvil: menú desplegable y ocultación al hacer scroll ---------- */
@@ -498,6 +518,7 @@
   new MutationObserver(() => { queueMeasure(40); setTimeout(() => queueMeasure(0), 900); }).observe(main, { childList: true });
   if ("ResizeObserver" in window) new ResizeObserver(() => queueMeasure()).observe(main);
   measureCurve();
+  onPaint = measureCurve;
 
   /* Escritorio: la rueda del ratón desplaza la página con inercia, deslizándose hasta su sitio.
      Si otra cosa mueve la página (teclado, un enlace, la barra) se suelta y la deja hacer */
