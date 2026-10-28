@@ -139,8 +139,9 @@ button { font: inherit; color: inherit; }
 .glass-edge i:nth-child(3) { --b: 4px;  --s: 28%; --e: 62%; }
 .glass-edge i:nth-child(4) { --b: 7px;  --s: 16%; --e: 45%; }
 .glass-edge i:nth-child(5) { --b: 12px; --s: 6%;  --e: 28%; }
-.glass-edge::after {
-  content: ""; position: absolute; inset: 0;
+/* Fundido al color del fondo, encima de las capas de desenfoque */
+.glass-edge > b {
+  position: absolute; inset: 0;
   background: var(--grain-img) 0 0 / var(--grain-size), var(--bg);
   background-blend-mode: soft-light, normal;
   --fade: linear-gradient(var(--dir), #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%);
@@ -150,8 +151,8 @@ button { font: inherit; color: inherit; }
    por detrás de la cabecera, y asoma por su degradado */
 :root[data-scrolled] .glass-edge.top { opacity: 1; }
 /* Al cambiar de página los bordes se apagan y vuelven con un fundido, en vez de cortarse */
-.glass-edge > i, .glass-edge::after { opacity: 1; transition: opacity .6s ease; }
-:root[data-edges-off] .glass-edge > i, :root[data-edges-off] .glass-edge::after { opacity: 0; transition: none; }
+.glass-edge > i, .glass-edge > b { opacity: 1; transition: opacity .6s ease; }
+:root[data-edges-off] .glass-edge > i, :root[data-edges-off] .glass-edge > b { opacity: 0; transition: none; }
 /* En escritorio los bordes son algo más altos, a juego con la pantalla */
 @media (min-width: 760px) {
   .glass-edge.top { height: 150px; }
@@ -497,25 +498,39 @@ a, button { -webkit-tap-highlight-color: transparent; }
 /* La cabecera y el botón de color se quedan quietos durante la transición */
 .site-head { view-transition-name: site-head; }
 .grade { view-transition-name: grade; }
-/* Los bordes desenfocados no se cortan al cambiar de página: el borde de abajo y cada una de sus
-   cinco capas de desenfoque tienen nombre propio y se quedan quietos por encima de los fotogramas
-   que vuelan, con el mismo desenfoque y la misma máscara que en reposo; así al acabar no cambia nada */
+/* Los bordes desenfocados no se cortan al cambiar de página (escritorio). Mientras los fotogramas
+   vuelan, unas piezas vacías (.edge-vt) con nombre propio quedan por encima de todo y sus grupos de
+   transición repiten las cinco capas de desenfoque y el fundido del borde de abajo, con los mismos
+   valores que en reposo. El borde de verdad se esconde en la página nueva y vuelve al instante al
+   acabar, así nunca se ven los dos a la vez ni hay salto.
+   Ojo: no poner nombre al borde de verdad ni a sus capas: con máscara o desenfoque dentro, el
+   navegador las pinta sin máscara al empezar la transición (una franja borrosa de golpe) */
+.edge-vt { display: none; }
 @media (min-width: 760px) {
-  .glass-edge.bottom { view-transition-name: edge-bottom; }
-  .glass-edge.bottom i:nth-child(1) { view-transition-name: edge-b1; }
-  .glass-edge.bottom i:nth-child(2) { view-transition-name: edge-b2; }
-  .glass-edge.bottom i:nth-child(3) { view-transition-name: edge-b3; }
-  .glass-edge.bottom i:nth-child(4) { view-transition-name: edge-b4; }
-  .glass-edge.bottom i:nth-child(5) { view-transition-name: edge-b5; }
+  .edge-vt { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 130px; pointer-events: none; z-index: 27; }
+  .edge-vt > u { position: absolute; inset: 0; }
+  .edge-vt > u:nth-child(1) { view-transition-name: edge-v1; }
+  .edge-vt > u:nth-child(2) { view-transition-name: edge-v2; }
+  .edge-vt > u:nth-child(3) { view-transition-name: edge-v3; }
+  .edge-vt > u:nth-child(4) { view-transition-name: edge-v4; }
+  .edge-vt > u:nth-child(5) { view-transition-name: edge-v5; }
+  .edge-vt > u:nth-child(6) { view-transition-name: edge-v6; }
 }
-::view-transition-group(edge-bottom), ::view-transition-group(edge-b1), ::view-transition-group(edge-b2), ::view-transition-group(edge-b3), ::view-transition-group(edge-b4), ::view-transition-group(edge-b5) { animation: none; }
-::view-transition-old(edge-bottom), ::view-transition-old(edge-b1), ::view-transition-old(edge-b2), ::view-transition-old(edge-b3), ::view-transition-old(edge-b4), ::view-transition-old(edge-b5) { display: none; }
-::view-transition-new(edge-bottom), ::view-transition-new(edge-b1), ::view-transition-new(edge-b2), ::view-transition-new(edge-b3), ::view-transition-new(edge-b4), ::view-transition-new(edge-b5) { animation: none; }
-::view-transition-group(edge-b1) { -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); }
-::view-transition-group(edge-b2) { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); }
-::view-transition-group(edge-b3) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); }
-::view-transition-group(edge-b4) { -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); }
-::view-transition-group(edge-b5) { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); }
+::view-transition-group(edge-v1), ::view-transition-group(edge-v2), ::view-transition-group(edge-v3), ::view-transition-group(edge-v4), ::view-transition-group(edge-v5), ::view-transition-group(edge-v6) { animation: none; }
+::view-transition-old(edge-v1), ::view-transition-old(edge-v2), ::view-transition-old(edge-v3), ::view-transition-old(edge-v4), ::view-transition-old(edge-v5), ::view-transition-old(edge-v6) { display: none; }
+::view-transition-new(edge-v1), ::view-transition-new(edge-v2), ::view-transition-new(edge-v3), ::view-transition-new(edge-v4), ::view-transition-new(edge-v5), ::view-transition-new(edge-v6) { animation: none; }
+::view-transition-group(edge-v1) { -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); }
+::view-transition-group(edge-v2) { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); }
+::view-transition-group(edge-v3) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); }
+::view-transition-group(edge-v4) { -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); }
+::view-transition-group(edge-v5) { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); }
+::view-transition-group(edge-v6) {
+  background: var(--grain-img) 0 0 / var(--grain-size), var(--bg); background-blend-mode: soft-light, normal;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%);
+}
+/* En la página nueva el borde de verdad no está (lo ponen las piezas de arriba) y vuelve sin fundido */
+:root[data-vt-edge] .glass-edge.bottom > * { opacity: 0; transition: none; }
+:root[data-vt-edge-instant] .glass-edge.bottom > * { transition: none; }
 ::view-transition-old(root) { animation: fade-out .2s ease both; }
 ::view-transition-new(root) { animation: page-in .45s ease .3s both; }
 
