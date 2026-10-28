@@ -497,25 +497,25 @@ a, button { -webkit-tap-highlight-color: transparent; }
 /* La cabecera y el botón de color se quedan quietos durante la transición */
 .site-head { view-transition-name: site-head; }
 .grade { view-transition-name: grade; }
-/* Los bordes desenfocados no se cortan al cambiar de página: tienen nombre propio, se quedan quietos
-   y, como van por encima de los fotogramas que vuelan, les aplican el mismo desenfoque */
+/* Los bordes desenfocados no se cortan al cambiar de página: el borde de abajo y cada una de sus
+   cinco capas de desenfoque tienen nombre propio y se quedan quietos por encima de los fotogramas
+   que vuelan, con el mismo desenfoque y la misma máscara que en reposo; así al acabar no cambia nada */
 @media (min-width: 760px) {
-  .glass-edge.top { view-transition-name: edge-top; }
   .glass-edge.bottom { view-transition-name: edge-bottom; }
+  .glass-edge.bottom i:nth-child(1) { view-transition-name: edge-b1; }
+  .glass-edge.bottom i:nth-child(2) { view-transition-name: edge-b2; }
+  .glass-edge.bottom i:nth-child(3) { view-transition-name: edge-b3; }
+  .glass-edge.bottom i:nth-child(4) { view-transition-name: edge-b4; }
+  .glass-edge.bottom i:nth-child(5) { view-transition-name: edge-b5; }
 }
-::view-transition-group(edge-top), ::view-transition-group(edge-bottom) { animation: none; }
-::view-transition-old(edge-top), ::view-transition-old(edge-bottom) { display: none; }
-::view-transition-new(edge-top), ::view-transition-new(edge-bottom) { animation: none; }
-::view-transition-group(edge-bottom) {
-  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
-  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 85%);
-  mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 85%);
-}
-::view-transition-group(edge-top) {
-  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 15%, transparent 85%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 15%, transparent 85%);
-}
+::view-transition-group(edge-bottom), ::view-transition-group(edge-b1), ::view-transition-group(edge-b2), ::view-transition-group(edge-b3), ::view-transition-group(edge-b4), ::view-transition-group(edge-b5) { animation: none; }
+::view-transition-old(edge-bottom), ::view-transition-old(edge-b1), ::view-transition-old(edge-b2), ::view-transition-old(edge-b3), ::view-transition-old(edge-b4), ::view-transition-old(edge-b5) { display: none; }
+::view-transition-new(edge-bottom), ::view-transition-new(edge-b1), ::view-transition-new(edge-b2), ::view-transition-new(edge-b3), ::view-transition-new(edge-b4), ::view-transition-new(edge-b5) { animation: none; }
+::view-transition-group(edge-b1) { -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); }
+::view-transition-group(edge-b2) { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); }
+::view-transition-group(edge-b3) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); }
+::view-transition-group(edge-b4) { -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); }
+::view-transition-group(edge-b5) { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); }
 ::view-transition-old(root) { animation: fade-out .2s ease both; }
 ::view-transition-new(root) { animation: page-in .45s ease .3s both; }
 
