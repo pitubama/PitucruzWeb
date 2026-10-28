@@ -497,6 +497,25 @@ a, button { -webkit-tap-highlight-color: transparent; }
 /* La cabecera y el botón de color se quedan quietos durante la transición */
 .site-head { view-transition-name: site-head; }
 .grade { view-transition-name: grade; }
+/* Los bordes desenfocados no se cortan al cambiar de página: tienen nombre propio, se quedan quietos
+   y, como van por encima de los fotogramas que vuelan, les aplican el mismo desenfoque */
+@media (min-width: 760px) {
+  .glass-edge.top { view-transition-name: edge-top; }
+  .glass-edge.bottom { view-transition-name: edge-bottom; }
+}
+::view-transition-group(edge-top), ::view-transition-group(edge-bottom) { animation: none; }
+::view-transition-old(edge-top), ::view-transition-old(edge-bottom) { display: none; }
+::view-transition-new(edge-top), ::view-transition-new(edge-bottom) { animation: none; }
+::view-transition-group(edge-bottom) {
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 85%);
+  mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 85%);
+}
+::view-transition-group(edge-top) {
+  -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 15%, transparent 85%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 15%, transparent 85%);
+}
 ::view-transition-old(root) { animation: fade-out .2s ease both; }
 ::view-transition-new(root) { animation: page-in .45s ease .3s both; }
 

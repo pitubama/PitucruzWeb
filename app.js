@@ -378,10 +378,10 @@
       // Los stills que ya estaban en pantalla vuelan a su sitio; los nuevos se abren como un obturador
       const before = new Set([...document.querySelectorAll("[data-vt]")].map((el) => el.dataset.vt));
       root.dataset.transition = view === "work" ? "to-work" : "page";
+      // Los bordes tienen su propio nombre de transición y se quedan encima de todo, desenfocando
+      // también los fotogramas que vuelan (ver ::view-transition-group(edge-*) en styles.css)
       const t = document.startViewTransition(() => {
-        edgesOff();
         paint();
-        edgesOn(450);
         document.querySelectorAll(".grid li").forEach((li) => {
           const frame = li.querySelector("[data-vt]");
           if (!frame) return;
@@ -390,7 +390,6 @@
         });
       });
       t.finished.finally(() => {
-        edgesOn(0);
         delete root.dataset.transition;
         document.querySelectorAll("[data-vt]").forEach((el) => (el.style.viewTransitionName = el.dataset.vt));
       });
