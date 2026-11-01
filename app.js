@@ -322,7 +322,7 @@
         <div class="media">
           <img src="${esc(p.stills[0])}" alt="Fotograma 1 de ${esc(p.title)}" data-vt="still-${esc(p.slug)}" style="view-transition-name: still-${esc(p.slug)}" tabindex="0">
           ${videoHTML(p.video, p.title)}
-          ${p.stills.slice(1).map((s, i) => `<img src="${esc(s)}" alt="Fotograma ${i + 2} de ${esc(p.title)}" loading="lazy" tabindex="0">`).join("")}
+          ${p.stills.slice(1).map((s, i, rest) => `<img src="${esc(s)}" alt="Fotograma ${i + 2} de ${esc(p.title)}" loading="lazy" tabindex="0"${rest.length % 2 && i === rest.length - 1 ? ` class="solo"` : ""}>`).join("")}
         </div>
         ${next && next !== p ? `<a class="next" href="#p-${esc(next.slug)}"><span class="next-label">Siguiente proyecto</span><span class="next-title">${esc(next.title)}</span></a>` : ""}
       </article>`;
@@ -538,6 +538,8 @@
     if (glide.y !== glide.target) glide.raf = requestAnimationFrame(glideStep);
   }
   window.addEventListener("wheel", (e) => {
+    // Con un fotograma a pantalla completa, girar la rueda lo cierra en vez de mover la página
+    if (root.hasAttribute("data-tilt")) { e.preventDefault(); if (Math.abs(e.deltaY) > 4) tiltDismiss(); return; }
     if (!finePointer.matches || reduceMotion || e.ctrlKey || e.defaultPrevented || root.hasAttribute("data-menu")) return;
     if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
     e.preventDefault();
@@ -549,33 +551,54 @@
   }, { passive: false });
   window.addEventListener("hashchange", () => { cancelAnimationFrame(glide.raf); glide.raf = 0; });
 
-  /* Móvil: al tocar un fotograma de un proyecto, gira 90° y crece hasta ocupar la pantalla,
-     como si hubieras tumbado el teléfono. Otro toque (o Escape) lo devuelve a su sitio */
+  /* Fotogramas a pantalla completa. Al tocar o hacer clic en un fotograma crece desde su sitio
+     hasta ocupar la pantalla, siempre con su formato original (4:3, 2.39…), sin recortes ni bandas.
+     En el móvil además gira 90°, como si hubieras tumbado el teléfono.
+     En el escritorio se pasa de uno a otro con las flechas. Otro clic (o Escape) lo devuelve a su sitio */
   const TILT_MS = 650;
-  const tilt = { el: null, frame: null, box: null, from: null, p: 0, p0: 0, tp: 0, start: 0, raf: 0 };
+  const tilt = { el: null, frame: null, box: null, from: null, p: 0, p0: 0, tp: 0, start: 0, raf: 0, rot: 0, ratio: 1.6 };
   const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+  const stillsOf = () => [...main.querySelectorAll(".media > img")];
+  const ratioOf = (img) => (img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 0);
+  function tiltCaption(img) {
+    const all = stillsOf();
+    tilt.el.querySelector(".tilt-meta").textContent = `Fotograma ${all.indexOf(img) + 1} de ${all.length}`;
+    tilt.el.setAttribute("aria-label", img.alt);
+  }
   function tiltOpen(img) {
     if (tilt.el) return;
     const title = (main.querySelector(".project-title") || {}).textContent || "";
+    const many = stillsOf().length > 1;
     const el = document.createElement("div");
     el.className = "tilt-view";
     el.setAttribute("role", "dialog");
-    el.setAttribute("aria-label", img.alt);
-    el.innerHTML = `<div class="tilt-shade"></div><figure class="tilt-frame"><img alt=""><figcaption><span class="tilt-title"></span><span class="tilt-meta"></span></figcaption></figure>`;
+    el.setAttribute("aria-modal", "true");
+    el.innerHTML = `<div class="tilt-shade"></div><figure class="tilt-frame"><img alt=""><figcaption><span class="tilt-title"></span><span class="tilt-meta"></span></figcaption></figure>` +
+      (many ? `<button class="tilt-nav tilt-prev" type="button" aria-label="Fotograma anterior">←</button><button class="tilt-nav tilt-next" type="button" aria-label="Fotograma siguiente">→</button>` : "");
     el.querySelector("img").src = img.currentSrc || img.src;
     el.querySelector("img").alt = img.alt;
     el.querySelector(".tilt-title").textContent = title;
-    el.querySelector(".tilt-meta").textContent = img.alt.replace(/ de .*$/, "");
-    el.addEventListener("click", tiltDismiss);
+    el.addEventListener("click", (e) => {
+      const nav = e.target.closest(".tilt-nav");
+      if (nav) tiltStep(nav.classList.contains("tilt-next") ? 1 : -1);
+      else tiltDismiss();
+    });
     document.body.appendChild(el);
     tilt.el = el; tilt.frame = el.querySelector(".tilt-frame"); tilt.box = img; tilt.opener = img;
+    tilt.rot = mobile.matches ? 90 : 0;
+    tiltCaption(img);
     tilt.from = img.getBoundingClientRect();
-    tilt.ratio = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 2.39;
+    tilt.ratio = ratioOf(img) || tilt.from.width / tilt.from.height || 1.6;
     img.style.visibility = "hidden";
-    root.setAttribute("data-tilt", "");
+    root.setAttribute("data-tilt", tilt.rot ? "turn" : "flat");
     tiltTo(1);
   }
-  function tiltDismiss() { if (tilt.el && tilt.tp !== 0) tiltTo(0); }
+  function tiltDismiss() {
+    if (!tilt.el || tilt.tp === 0) return;
+    // Vuelve al sitio donde está ahora el fotograma (puede haber cambiado al pasar de uno a otro)
+    tilt.from = tilt.box.getBoundingClientRect();
+    tiltTo(0);
+  }
   function tiltTo(target) {
     tilt.p0 = tilt.p; tilt.tp = target; tilt.start = performance.now();
     if (reduceMotion) tilt.p0 = target;
@@ -584,38 +607,84 @@
   function tiltClose() {
     if (!tilt.el) return;
     tilt.el.remove(); tilt.box.style.visibility = "";
-    if (tilt.opener && document.activeElement === document.body) tilt.opener.focus({ preventScroll: true });
+    if (tilt.box && document.activeElement === document.body) tilt.box.focus({ preventScroll: true });
     tilt.el = tilt.frame = tilt.box = tilt.opener = null; tilt.p = tilt.tp = 0;
     if (tilt.raf) { cancelAnimationFrame(tilt.raf); tilt.raf = 0; }
     root.removeAttribute("data-tilt");
   }
-  function tiltRender(now) {
-    tilt.raf = 0;
-    const { el, frame, from } = tilt;
-    if (!el) return;
-    const u = Math.min(1, (now - tilt.start) / TILT_MS);
-    const p = tilt.p = tilt.p0 + (tilt.tp - tilt.p0) * easeInOut(u);
+  // Coloca el marco: p = 0 es el fotograma en la página, p = 1 a pantalla completa
+  function tiltPlace(p) {
+    const { el, frame, from, ratio, rot } = tilt;
     const vw = window.innerWidth, vh = window.innerHeight;
-    // Tamaño final: la foto entera, tumbada, lo más grande que quepa dejando sitio al pie con el título
-    const W = Math.min(vh * 0.92, (vw - 112) * tilt.ratio), H = W / tilt.ratio;
+    let W, cy = vh / 2;
+    if (rot) {
+      // Móvil: la foto entera, tumbada, lo más grande que quepa dejando sitio al pie con el título
+      W = Math.min(vh * 0.92, (vw - 112) * ratio);
+    } else {
+      // Escritorio: lo más grande que quepa, con margen para las flechas y el pie debajo
+      const side = vw > 900 ? 96 : 56;
+      W = Math.min(vw - side * 2, (vh - 150) * ratio);
+      cy = vh / 2 - 20;
+    }
+    const H = W / ratio;
     const w = from.width + (W - from.width) * p, h = from.height + (H - from.height) * p;
     const x = from.left + from.width / 2 + (vw / 2 - from.left - from.width / 2) * p;
-    const y = from.top + from.height / 2 + (vh / 2 - from.top - from.height / 2) * p;
+    const y = from.top + from.height / 2 + (cy - from.top - from.height / 2) * p;
     frame.style.width = w + "px"; frame.style.height = h + "px";
-    frame.style.transform = `translate(${x - w / 2}px, ${y - h / 2}px) rotate(${(90 * p).toFixed(2)}deg)`;
+    frame.style.transform = `translate(${x - w / 2}px, ${y - h / 2}px)` + (rot ? ` rotate(${(rot * p).toFixed(2)}deg)` : "");
     el.style.setProperty("--p", p.toFixed(3));
+  }
+  function tiltRender(now) {
+    tilt.raf = 0;
+    if (!tilt.el) return;
+    const u = Math.min(1, (now - tilt.start) / TILT_MS);
+    const p = tilt.p = tilt.p0 + (tilt.tp - tilt.p0) * easeInOut(u);
+    tiltPlace(p);
     if (u < 1) tilt.raf = requestAnimationFrame(tiltRender);
     else if (tilt.tp === 0) tiltClose();
   }
+  // Escritorio: pasa al fotograma anterior o siguiente con un fundido, ya en su propio formato
+  let stepToken = 0;
+  function tiltStep(dir) {
+    if (!tilt.el || tilt.rot || tilt.tp !== 1) return;
+    const all = stillsOf();
+    if (all.length < 2) return;
+    const next = all[(all.indexOf(tilt.box) + dir + all.length) % all.length];
+    tilt.box.style.visibility = "";
+    tilt.box = next; next.style.visibility = "hidden";
+    tiltCaption(next);
+    // Por detrás, la página se coloca en ese fotograma para que al cerrar vuelva a su sitio
+    const r = next.getBoundingClientRect();
+    window.scrollTo(0, Math.max(0, window.scrollY + r.top - (window.innerHeight - r.height) / 2));
+    const shown = tilt.frame.querySelector("img"), token = ++stepToken;
+    shown.classList.add("swap");
+    const pre = new Image();
+    pre.src = next.currentSrc || next.src;
+    const go = () => {
+      if (token !== stepToken || !tilt.el) return;
+      tilt.ratio = ratioOf(pre) || tilt.ratio;
+      shown.src = pre.src; shown.alt = next.alt;
+      tiltPlace(tilt.p);
+      requestAnimationFrame(() => shown.classList.remove("swap"));
+    };
+    Promise.all([pre.decode ? pre.decode().catch(() => {}) : null, new Promise((r) => setTimeout(r, 160))]).then(go);
+  }
   main.addEventListener("click", (e) => {
     const img = e.target.closest(".media > img");
-    if (img && mobile.matches) tiltOpen(img);
+    if (img) tiltOpen(img);
   });
   main.addEventListener("keydown", (e) => {
     const img = e.target.closest(".media > img");
-    if (img && mobile.matches && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); tiltOpen(img); }
+    if (img && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); tiltOpen(img); }
   });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") tiltDismiss(); });
+  document.addEventListener("keydown", (e) => {
+    if (!tilt.el) return;
+    if (e.key === "Escape") tiltDismiss();
+    else if (e.key === "ArrowRight") { e.preventDefault(); tiltStep(1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); tiltStep(-1); }
+    else if ([" ", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End"].includes(e.key)) e.preventDefault();
+  });
+  window.addEventListener("resize", () => { if (tilt.el && !tilt.raf) tiltPlace(tilt.p); });
   window.addEventListener("hashchange", tiltClose);
   mobile.addEventListener("change", tiltClose);
 
