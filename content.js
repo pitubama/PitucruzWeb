@@ -42,6 +42,29 @@
       window.PROJECTS = [];
       window.SITE = {};
     })
+    // Formato de cada portada (ancho / alto), para que las tarjetas salgan con el formato
+    // original de su foto desde el primer momento. Se guarda en el navegador para la próxima visita
+    .then(() => {
+      let saved = {};
+      try { saved = JSON.parse(localStorage.getItem("idlc-ratios") || "{}") || {}; } catch (e) {}
+      window.RATIOS = saved;
+      const missing = [...new Set((window.PROJECTS || []).map((p) => p.stills[0]).filter((src) => src && !saved[src]))];
+      if (!missing.length) return;
+      const imgs = missing.map((src) => { const im = new Image(); im.src = src; return [src, im]; });
+      // El tamaño se conoce en cuanto llega la cabecera de la imagen, mucho antes de que termine de bajar
+      return new Promise((done) => {
+        const t0 = performance.now();
+        const tick = () => {
+          const ready = imgs.every(([, im]) => im.naturalWidth || im.complete);
+          if (ready || performance.now() - t0 > 1500) {
+            imgs.forEach(([src, im]) => { if (im.naturalWidth && im.naturalHeight) saved[src] = +(im.naturalWidth / im.naturalHeight).toFixed(4); });
+            try { localStorage.setItem("idlc-ratios", JSON.stringify(saved)); } catch (e) {}
+            done();
+          } else setTimeout(tick, 25);
+        };
+        tick();
+      });
+    })
     .then(() => {
       const s = document.createElement("script");
       s.src = window.APP_SRC || "app.js";

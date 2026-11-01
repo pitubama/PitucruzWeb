@@ -47,8 +47,34 @@
     return cls;
   }
 
+  // Formato original de cada portada (lo mide content.js; si aún no se sabe, se corrige al cargar la foto)
+  const ratios = window.RATIOS || {};
+  const ratioFor = (src) => ratios[src] || 1.6;
+  // En Trabajos, cada pareja reparte el ancho según el formato de sus fotos para que las dos
+  // tengan la misma altura sin recortar ninguna
+  function layoutPairs(grid) {
+    const items = [...grid.children].filter((li) => li.classList.contains("w7") || li.classList.contains("w5"));
+    for (let k = 0; k + 1 < items.length; k += 2) {
+      const a = parseFloat(items[k].style.getPropertyValue("--ar")) || 1.6;
+      const b = parseFloat(items[k + 1].style.getPropertyValue("--ar")) || 1.6;
+      items[k].style.setProperty("--share", (a / (a + b)).toFixed(4));
+      items[k + 1].style.setProperty("--share", (b / (a + b)).toFixed(4));
+    }
+  }
+  main.addEventListener("load", (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || !img.closest(".card-frame") || !img.naturalWidth) return;
+    const li = img.closest("li"), src = img.getAttribute("src");
+    const r = +(img.naturalWidth / img.naturalHeight).toFixed(4);
+    if (Math.abs((ratios[src] || 0) - r) < 0.005 && li.style.getPropertyValue("--ar")) return;
+    ratios[src] = r;
+    try { localStorage.setItem("idlc-ratios", JSON.stringify(ratios)); } catch (err) {}
+    li.style.setProperty("--ar", r);
+    if (li.parentElement.id === "grid") layoutPairs(li.parentElement);
+  }, true);
+
   function cardHTML(p, i, total, size) {
-    return `<li class="${size || sizeFor(i, total)}" style="--i:${i}">
+    return `<li class="${size || sizeFor(i, total)}" style="--i:${i}; --ar:${ratioFor(p.stills[0])}">
       <a class="card" href="#p-${esc(p.slug)}">
         <div class="card-frame" data-vt="still-${esc(p.slug)}" style="view-transition-name: still-${esc(p.slug)}"><img src="${esc(p.stills[0])}" alt="Fotograma de ${esc(p.title)}" loading="${i < 2 ? "eager" : "lazy"}"></div>
         <div class="card-text">
@@ -69,6 +95,7 @@
     grid.innerHTML = list.length
       ? list.map((p, i) => cardHTML(p, i, list.length)).join("")
       : `<li class="empty">Todavía no hay proyectos en esta categoría.</li>`;
+    layoutPairs(grid);
     if (!reduceMotion) grid.querySelectorAll("li").forEach((li) => li.classList.add("reveal"));
   }
 

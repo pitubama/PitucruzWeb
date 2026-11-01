@@ -208,15 +208,14 @@ a, button { -webkit-tap-highlight-color: transparent; }
   cursor: grab;
 }
 .rail::-webkit-scrollbar { display: none; }
-.rail > li { flex: 0 0 auto; width: min(36vw, 680px); scroll-snap-align: start; min-width: 0; }
-.rail > li:first-child { width: min(48vw, 900px); }
-.rail .card-frame { aspect-ratio: 1.6 / 1; }
-.rail > li:first-child .card-frame { aspect-ratio: auto; height: calc(min(36vw, 680px) / 1.6); }
+/* Todas las fotos a la misma altura y cada una con el ancho que pide su formato original */
+.rail { --h: calc(min(36vw, 680px) / 1.6); align-items: flex-start; }
+.rail > li { flex: 0 0 auto; width: min(calc(var(--h) * var(--ar, 1.6)), 62vw); scroll-snap-align: start; min-width: 0; }
 .rail.is-dragging { cursor: grabbing; scroll-snap-type: none; }
 .rail.is-dragging .card { pointer-events: none; }
 @media (max-width: 759px) {
-  .rail > li, .rail > li:first-child { width: 84vw; }
-  .rail .card-frame, .rail > li:first-child .card-frame { aspect-ratio: 1.6 / 1; height: auto; }
+  .rail { --h: 54vw; }
+  .rail > li { width: min(calc(var(--h) * var(--ar, 1.6)), 86vw); }
 }
 
 /* Sección trabajo */
@@ -291,16 +290,18 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .dial-sub.is-open { grid-template-rows: 1fr; opacity: 1; }
 .dial-sub .dial-host { padding-top: 8px; }
 
+/* Cada foto con su formato original: las que van solas no pasan del 72% del alto de la pantalla
+   y las parejas se reparten el ancho según su formato para quedar a la misma altura */
 .grid {
-  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: clamp(36px, 5vw, 72px) clamp(16px, 2.4vw, 32px);
+  --cg: clamp(16px, 2.4vw, 32px);
+  display: flex; flex-wrap: wrap; align-items: flex-start;
+  gap: clamp(36px, 5vw, 72px) var(--cg);
   margin: 0; padding: 0; list-style: none;
 }
-.grid > li { grid-column: span 12; min-width: 0; }
+.grid > li { flex: 0 0 100%; min-width: 0; }
+.grid > li.w12 > .card { width: min(100%, calc(72vh * var(--ar, 1.6))); }
 @media (min-width: 760px) {
-  .grid > li.w7 { grid-column: span 7; }
-  .grid > li.w5 { grid-column: span 5; }
-  .grid > li.w5 .card-frame { aspect-ratio: 1.6 / 1; }
+  .grid > li.w7, .grid > li.w5 { flex-basis: calc((100% - var(--cg)) * var(--share, .5) - .5px); }
 }
 .card {
   display: grid; gap: .8rem; text-decoration: none;
@@ -308,7 +309,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
   transition: transform .7s var(--ease);
 }
 .card-frame {
-  aspect-ratio: 2.39 / 1; max-width: 100%; overflow: hidden; background: var(--raise);
+  aspect-ratio: var(--ar, 1.6); max-width: 100%; overflow: hidden; background: var(--raise);
   box-shadow: 0 0 0 rgba(0,0,0,0);
   transition: box-shadow .7s var(--ease);
 }
@@ -647,7 +648,6 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
   .dials { margin-bottom: 6px; }
 
-  .card-frame { aspect-ratio: 1.85 / 1; }
   .card-text { flex-direction: column; gap: .1rem; }
   .card-meta { align-self: flex-start; }
 
