@@ -298,9 +298,9 @@
     if (!v || !v.id) return "";
     const isVimeo = v.provider === "vimeo";
     const src = isVimeo
-      ? `https://player.vimeo.com/video/${encodeURIComponent(v.id)}?dnt=1&title=0&byline=0&portrait=0`
+      ? `https://player.vimeo.com/video/${encodeURIComponent(v.id)}?${v.hash ? `h=${encodeURIComponent(v.hash)}&` : ""}dnt=1&title=0&byline=0&portrait=0`
       : `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?rel=0`;
-    const page = isVimeo ? `https://vimeo.com/${encodeURIComponent(v.id)}` : `https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}`;
+    const page = isVimeo ? `https://vimeo.com/${encodeURIComponent(v.id)}${v.hash ? `/${encodeURIComponent(v.hash)}` : ""}` : `https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}`;
     return `<div class="video"><iframe src="${src}" title="${esc(title)}" loading="lazy"
         allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe></div>
       <a class="video-link" href="${page}" target="_blank" rel="noopener">Ver en ${isVimeo ? "Vimeo" : "YouTube"}</a>`;

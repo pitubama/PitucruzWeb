@@ -1,0 +1,14 @@
+{
+  "name": "Ismael de la Cruz",
+  "role": "Colorista",
+  "city": "Madrid",
+  "tagline": "Color para cine, series, publicidad y videoclips.",
+  "email": "hola@ismaeldelacruz.com",
+  "instagram": "https://instagram.com/",
+  "vimeo": "https://vimeo.com/",
+  "about": [
+    "Soy colorista y trabajo en DaVinci Resolve sobre largometrajes, series, publicidad y videoclips.",
+    "Me gusta entrar pronto en los proyectos: preparar el look con dirección y fotografía antes del rodaje ahorra muchas horas en la sala y da imágenes más coherentes.",
+    "Entrego en HDR y SDR, ACES o flujos de cámara nativos, y trabajo tanto en remoto como en sala calibrada."
+  ]
+}

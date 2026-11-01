@@ -1,0 +1,100 @@
+# Configuración del panel de edición (Pages CMS: https://app.pagescms.org)
+media:
+  input: img
+  output: img
+  categories: [image]
+
+content:
+  - name: proyectos
+    label: Proyectos
+    type: file
+    path: content/projects.json
+    format: json
+    fields:
+      - name: projects
+        label: Proyectos
+        description: El orden de esta lista es el orden en la página de Trabajo. Arrastra para reordenar.
+        type: object
+        list:
+          collapsible:
+            collapsed: true
+            summary: "{fields.title} ({fields.year})"
+        fields:
+          - name: title
+            label: Título
+            type: string
+            required: true
+          - name: slug
+            label: Identificador para el enlace
+            description: Corto, en minúsculas, sin espacios ni tildes. Ej. mar-de-fondo. No lo cambies una vez publicado.
+            type: string
+            required: true
+            pattern:
+              regex: "^[a-z0-9]+(-[a-z0-9]+)*$"
+              message: Solo minúsculas, números y guiones (ej. mar-de-fondo)
+          - name: category
+            label: Tipo
+            description: Largometraje, Cortometraje y Serie se agrupan en «Ficción» en la página de Trabajo.
+            type: select
+            required: true
+            options:
+              values: [Largometraje, Cortometraje, Serie, Publicidad, Videoclip, Documental]
+          - name: year
+            label: Año
+            type: number
+            required: true
+          - name: featured
+            label: Destacado en portada
+            description: En la portada salen los dos primeros proyectos marcados.
+            type: boolean
+          - name: summary
+            label: Descripción
+            type: text
+          - name: camera
+            label: Cámara / formato de origen
+            description: Opcional. Ej. ARRI Alexa 35 · ARRIRAW
+            type: string
+          - name: video
+            label: Vídeo (enlace de Vimeo o YouTube)
+            description: Opcional. Pega el enlace tal cual, ej. https://vimeo.com/76979871 o https://youtu.be/aqz-KE-bpKQ. Los enlaces privados de Vimeo también valen.
+            type: string
+          - name: stills
+            label: Stills
+            description: El primero es la portada. JPG de unos 2000 px de ancho, calidad 80.
+            type: image
+            required: true
+            options:
+              multiple: true
+          - name: credits
+            label: Créditos
+            type: object
+            list:
+              collapsible:
+                collapsed: false
+                summary: "{fields.role}: {fields.name}"
+            fields:
+              - name: role
+                label: Rol
+                description: Ej. Dirección, Dirección de fotografía, Productora, Marca, Agencia
+                type: string
+              - name: name
+                label: Nombre
+                type: string
+
+  - name: web
+    label: Datos de la web
+    type: file
+    path: content/site.json
+    format: json
+    fields:
+      - { name: name, label: Nombre, type: string, required: true }
+      - { name: role, label: Profesión, type: string }
+      - { name: city, label: Ciudad, type: string }
+      - { name: tagline, label: Frase de portada, type: string }
+      - { name: email, label: Email, type: string }
+      - { name: instagram, label: Instagram (enlace), type: string }
+      - { name: vimeo, label: Vimeo (enlace), type: string }
+      - name: about
+        label: Sobre mí (un párrafo por elemento)
+        type: text
+        list: true
