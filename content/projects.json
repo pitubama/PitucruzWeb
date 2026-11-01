@@ -1,43 +1,48 @@
 {
   "projects": [
     {
-      "slug": "mar-de-fondo",
-      "title": "Mar de fondo",
-      "category": "Largometraje",
+      "title": "Desmayo",
+      "slug": "desmayo",
+      "category": "Cortometraje",
       "year": 2026,
       "featured": true,
-      "summary": "Un pueblo costero en el último verano antes del cierre de la fábrica. Etalonaje cálido en altas luces y sombras frías que se van cerrando con la historia.",
-      "camera": "ARRI Alexa 35 · ARRIRAW",
+      "stills": [
+        "img/Desmayo/1.11.1_1.11.1_web.jpg",
+        "img/Desmayo/1.23.1_1.23.1_web.jpg",
+        "img/Desmayo/1.39.1_1.39.1_web.jpg",
+        "img/Desmayo/1.26.1_1.26.1_web.jpg",
+        "img/Desmayo/1.33.1_1.33.1_web.jpg",
+        "img/Desmayo/1.31.1_1.31.1_web.jpg",
+        "img/Desmayo/1.30.1_1.30.1_web.jpg",
+        "img/Desmayo/1.22.1_1.22.1_web.jpg",
+        "img/Desmayo/1.19.1_1.19.1_web.jpg"
+      ],
       "credits": [
         {
           "role": "Dirección",
-          "name": "Lucía Ferrer"
-        },
-        {
-          "role": "Dirección de fotografía",
-          "name": "Pablo Arenas"
+          "name": "Miguel Toledo"
         },
         {
           "role": "Productora",
-          "name": "Bruma Films"
+          "name": "Mi Catarsis Films"
         }
-      ],
-      "video": "https://vimeo.com/76979871",
-      "stills": [
-        "img/mar-de-fondo-1.jpg",
-        "img/mar-de-fondo-2.jpg",
-        "img/mar-de-fondo-3.jpg",
-        "img/mar-de-fondo-4.jpg"
       ]
     },
     {
-      "slug": "la-ultima-noche",
       "title": "La última noche",
+      "slug": "la-ultima-noche",
       "category": "Videoclip",
       "year": 2026,
       "featured": true,
       "summary": "Neón, humo y piel. Un look nocturno saturado que protege los tonos de piel dentro de una paleta magenta.",
       "camera": "Sony Venice 2 · X-OCN",
+      "video": "https://youtu.be/aqz-KE-bpKQ",
+      "stills": [
+        "img/la-ultima-noche-1.jpg",
+        "img/la-ultima-noche-2.jpg",
+        "img/la-ultima-noche-3.jpg",
+        "img/la-ultima-noche-4.jpg"
+      ],
       "credits": [
         {
           "role": "Artista",
@@ -51,23 +56,22 @@
           "role": "Dirección de fotografía",
           "name": "Irene Gómez"
         }
-      ],
-      "video": "https://youtu.be/aqz-KE-bpKQ",
-      "stills": [
-        "img/la-ultima-noche-1.jpg",
-        "img/la-ultima-noche-2.jpg",
-        "img/la-ultima-noche-3.jpg",
-        "img/la-ultima-noche-4.jpg"
       ]
     },
     {
-      "slug": "niebla",
       "title": "Niebla",
+      "slug": "niebla",
       "category": "Cortometraje",
       "year": 2025,
       "featured": false,
       "summary": "Bosque gallego en invierno. Contraste bajo, verdes contenidos y una textura de grano de 35 mm añadida en la sala.",
       "camera": "RED Komodo · R3D",
+      "stills": [
+        "img/niebla-1.jpg",
+        "img/niebla-2.jpg",
+        "img/niebla-3.jpg",
+        "img/niebla-4.jpg"
+      ],
       "credits": [
         {
           "role": "Dirección",
@@ -77,23 +81,22 @@
           "role": "Dirección de fotografía",
           "name": "Sara Montes"
         }
-      ],
-      "video": "",
-      "stills": [
-        "img/niebla-1.jpg",
-        "img/niebla-2.jpg",
-        "img/niebla-3.jpg",
-        "img/niebla-4.jpg"
       ]
     },
     {
-      "slug": "cobre",
       "title": "Cobre",
+      "slug": "cobre",
       "category": "Publicidad",
       "year": 2025,
       "featured": false,
       "summary": "Spot de 30 segundos. Ámbar y cobre en toda la imagen sin perder el detalle en las sombras del bar.",
       "camera": "ARRI Alexa Mini LF · ProRes 4444",
+      "stills": [
+        "img/cobre-1.jpg",
+        "img/cobre-2.jpg",
+        "img/cobre-3.jpg",
+        "img/cobre-4.jpg"
+      ],
       "credits": [
         {
           "role": "Marca",
@@ -107,23 +110,22 @@
           "role": "Dirección",
           "name": "Javier Lago"
         }
-      ],
-      "video": "",
-      "stills": [
-        "img/cobre-1.jpg",
-        "img/cobre-2.jpg",
-        "img/cobre-3.jpg",
-        "img/cobre-4.jpg"
       ]
     },
     {
-      "slug": "azul-electrico",
       "title": "Azul eléctrico",
+      "slug": "azul-electrico",
       "category": "Serie",
       "year": 2024,
       "featured": false,
       "summary": "Seis episodios. Un look base para toda la serie y variaciones por episodio que se entregaron en HDR y SDR.",
       "camera": "Blackmagic URSA 12K · BRAW",
+      "stills": [
+        "img/azul-electrico-1.jpg",
+        "img/azul-electrico-2.jpg",
+        "img/azul-electrico-3.jpg",
+        "img/azul-electrico-4.jpg"
+      ],
       "credits": [
         {
           "role": "Creadora",
@@ -137,23 +139,22 @@
           "role": "Plataforma",
           "name": "Por confirmar"
         }
-      ],
-      "video": "",
-      "stills": [
-        "img/azul-electrico-1.jpg",
-        "img/azul-electrico-2.jpg",
-        "img/azul-electrico-3.jpg",
-        "img/azul-electrico-4.jpg"
       ]
     },
     {
-      "slug": "verano-del-92",
       "title": "Verano del 92",
+      "slug": "verano-del-92",
       "category": "Largometraje",
       "year": 2024,
       "featured": false,
       "summary": "Rodada en celuloide. El trabajo fue respetar la emulsión y unificar tres laboratorios de escaneo distintos.",
       "camera": "Kodak Vision3 35 mm · escaneo 4K",
+      "stills": [
+        "img/verano-del-92-1.jpg",
+        "img/verano-del-92-2.jpg",
+        "img/verano-del-92-3.jpg",
+        "img/verano-del-92-4.jpg"
+      ],
       "credits": [
         {
           "role": "Dirección",
@@ -163,13 +164,6 @@
           "role": "Dirección de fotografía",
           "name": "Diego Ortega"
         }
-      ],
-      "video": "",
-      "stills": [
-        "img/verano-del-92-1.jpg",
-        "img/verano-del-92-2.jpg",
-        "img/verano-del-92-3.jpg",
-        "img/verano-del-92-4.jpg"
       ]
     }
   ]
