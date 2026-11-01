@@ -38,29 +38,30 @@
   const PLURAL = { Largometraje: "Largometrajes", Cortometraje: "Cortos", Serie: "Series", Videoclip: "Videoclips", Documental: "Documentales" };
   const activeFilter = { top: "Todo", sub: "Ficción" };
 
-  function sizeFor(i, total) {
-    // Ritmo de la rejilla: ancho completo, luego parejas 7/5 y 5/7
-    const pattern = ["w12", "w7", "w5", "w5", "w7"];
-    const cls = pattern[i % pattern.length];
-    const startsPair = cls === "w7" && i % 5 === 1 || cls === "w5" && i % 5 === 3;
-    if (startsPair && i === total - 1) return "w12";
-    return cls;
-  }
+  // Rejilla de Trabajos: el reparto en filas lo hace layoutPairs según el formato de cada foto
+  const sizeFor = () => "cell";
 
   // Formato original de cada portada (lo mide content.js; si aún no se sabe, se corrige al cargar la foto)
   const ratios = window.RATIOS || {};
   const ratioFor = (src) => ratios[src] || 1.6;
-  // En Trabajos, cada pareja reparte el ancho según el formato de sus fotos para que las dos
-  // tengan la misma altura sin recortar ninguna
+  // En Trabajos las tarjetas van en filas (3 en pantallas grandes, 2 en medianas) y cada fila
+  // reparte el ancho según el formato de sus fotos para que todas tengan la misma altura sin recortar
+  const wideGrid = window.matchMedia("(min-width: 1100px)"), midGrid = window.matchMedia("(min-width: 760px)");
   function layoutPairs(grid) {
-    const items = [...grid.children].filter((li) => li.classList.contains("w7") || li.classList.contains("w5"));
-    for (let k = 0; k + 1 < items.length; k += 2) {
-      const a = parseFloat(items[k].style.getPropertyValue("--ar")) || 1.6;
-      const b = parseFloat(items[k + 1].style.getPropertyValue("--ar")) || 1.6;
-      items[k].style.setProperty("--share", (a / (a + b)).toFixed(4));
-      items[k + 1].style.setProperty("--share", (b / (a + b)).toFixed(4));
+    const n = wideGrid.matches ? 3 : midGrid.matches ? 2 : 1;
+    grid.style.setProperty("--n", n);
+    const items = [...grid.children].filter((li) => !li.classList.contains("empty"));
+    const ar = (li) => parseFloat(li.style.getPropertyValue("--ar")) || 1.6;
+    const avg = items.reduce((s, li) => s + ar(li), 0) / (items.length || 1);
+    for (let k = 0; k < items.length; k += n) {
+      const row = items.slice(k, k + n);
+      // Si la última fila no está completa, sus fotos salen a la misma altura que las demás
+      const sum = row.reduce((s, li) => s + ar(li), 0) + (n - row.length) * avg;
+      row.forEach((li) => li.style.setProperty("--share", (ar(li) / sum).toFixed(4)));
     }
   }
+  const relayout = () => { const g = document.getElementById("grid"); if (g) layoutPairs(g); };
+  wideGrid.addEventListener("change", relayout); midGrid.addEventListener("change", relayout);
   main.addEventListener("load", (e) => {
     const img = e.target;
     if (!(img instanceof HTMLImageElement) || !img.closest(".card-frame") || !img.naturalWidth) return;

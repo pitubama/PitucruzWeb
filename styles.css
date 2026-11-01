@@ -290,18 +290,17 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .dial-sub.is-open { grid-template-rows: 1fr; opacity: 1; }
 .dial-sub .dial-host { padding-top: 8px; }
 
-/* Cada foto con su formato original: las que van solas no pasan del 72% del alto de la pantalla
-   y las parejas se reparten el ancho según su formato para quedar a la misma altura */
+/* Cada foto con su formato original, en filas de 3 (o de 2 en pantallas medianas) que se reparten
+   el ancho según el formato de sus fotos para quedar todas a la misma altura */
 .grid {
   --cg: clamp(16px, 2.4vw, 32px);
   display: flex; flex-wrap: wrap; align-items: flex-start;
-  gap: clamp(36px, 5vw, 72px) var(--cg);
+  gap: clamp(32px, 4vw, 56px) var(--cg);
   margin: 0; padding: 0; list-style: none;
 }
 .grid > li { flex: 0 0 100%; min-width: 0; }
-.grid > li.w12 > .card { width: min(100%, calc(72vh * var(--ar, 1.6))); }
 @media (min-width: 760px) {
-  .grid > li.w7, .grid > li.w5 { flex-basis: calc((100% - var(--cg)) * var(--share, .5) - .5px); }
+  .grid > li { flex-basis: calc((100% - (var(--n, 2) - 1) * var(--cg)) * var(--share, .5) - .5px); }
 }
 .card {
   display: grid; gap: .8rem; text-decoration: none;
