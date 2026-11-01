@@ -44,11 +44,11 @@
   // Formato original de cada portada (lo mide content.js; si aún no se sabe, se corrige al cargar la foto)
   const ratios = window.RATIOS || {};
   const ratioFor = (src) => ratios[src] || 1.6;
-  // En Trabajos las tarjetas van en filas (3 en pantallas grandes, 2 en medianas) y cada fila
-  // reparte el ancho según el formato de sus fotos para que todas tengan la misma altura sin recortar
-  const wideGrid = window.matchMedia("(min-width: 1100px)"), midGrid = window.matchMedia("(min-width: 760px)");
+  // En Trabajos las tarjetas van de dos en dos y cada pareja reparte el ancho según el formato
+  // de sus fotos para que las dos tengan la misma altura sin recortar
+  const midGrid = window.matchMedia("(min-width: 760px)");
   function layoutPairs(grid) {
-    const n = wideGrid.matches ? 3 : midGrid.matches ? 2 : 1;
+    const n = midGrid.matches ? 2 : 1;
     grid.style.setProperty("--n", n);
     const items = [...grid.children].filter((li) => !li.classList.contains("empty"));
     const ar = (li) => parseFloat(li.style.getPropertyValue("--ar")) || 1.6;
@@ -61,7 +61,7 @@
     }
   }
   const relayout = () => { const g = document.getElementById("grid"); if (g) layoutPairs(g); };
-  wideGrid.addEventListener("change", relayout); midGrid.addEventListener("change", relayout);
+  midGrid.addEventListener("change", relayout);
   main.addEventListener("load", (e) => {
     const img = e.target;
     if (!(img instanceof HTMLImageElement) || !img.closest(".card-frame") || !img.naturalWidth) return;

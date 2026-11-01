@@ -290,8 +290,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .dial-sub.is-open { grid-template-rows: 1fr; opacity: 1; }
 .dial-sub .dial-host { padding-top: 8px; }
 
-/* Cada foto con su formato original, en filas de 3 (o de 2 en pantallas medianas) que se reparten
-   el ancho según el formato de sus fotos para quedar todas a la misma altura */
+/* Cada foto con su formato original, de dos en dos: cada pareja se reparte el ancho según
+   el formato de sus fotos para quedar las dos a la misma altura */
 .grid {
   --cg: clamp(16px, 2.4vw, 32px);
   display: flex; flex-wrap: wrap; align-items: flex-start;
