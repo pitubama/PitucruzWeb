@@ -10,8 +10,11 @@
   --scope-g: #57ab5a;
   --scope-b: #539bf5;
 
-  --font: "Epilogue", "Helvetica Neue", Arial, system-ui, sans-serif;
-  --display: "Noto Serif Display", Didot, "Bodoni 72", Georgia, serif;
+  /* Tipografía "créditos finales": una sola familia, Archivo, ancha y en mayúsculas espaciadas
+     para títulos y etiquetas, como los créditos de una película; normal para el texto corrido */
+  --font: "Archivo", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --credit-track: .16em;   /* espaciado de las etiquetas pequeñas */
   --step--1: clamp(0.8rem, 0.78rem + 0.1vw, 0.875rem);
   --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
   --step-1: clamp(1.2rem, 1.1rem + 0.45vw, 1.45rem);
@@ -57,7 +60,7 @@ button { font: inherit; color: inherit; }
 }
 .brand { text-decoration: none; display: grid; gap: .1rem; }
 .brand-name {
-  font-family: var(--display); font-size: var(--step-1); font-weight: 500; letter-spacing: -.01em; line-height: 1.1;
+  font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-size: .95rem; font-weight: 500; letter-spacing: .22em; line-height: 1.2;
 }
 .brand-role { color: var(--muted); font-size: var(--step--1); }
 .site-nav { display: flex; gap: 1.5rem; font-size: var(--step--1); }
@@ -174,15 +177,15 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .intro { padding-block: clamp(32px, 7vw, 110px) clamp(48px, 8vw, 120px); }
 .intro-line {
   margin: 0; max-width: 18ch;
-  font-family: var(--display); font-style: italic; font-weight: 200;
-  font-size: calc(var(--step-3) * 1.08); line-height: .98; letter-spacing: -.025em;
+  font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-weight: 200;
+  font-size: calc(var(--step-3) * .82); line-height: 1.12; letter-spacing: .04em; max-width: 20ch;
   text-wrap: balance;
   animation: focus-pull 1.8s var(--ease) .15s both;
 }
 /* Única animación de entrada: el titular entra a foco, como un cambio de foco en cámara */
 :root[data-loaded] .intro-line { animation: none; }
 @keyframes focus-pull {
-  from { filter: blur(14px); opacity: 0; letter-spacing: .02em; }
+  from { filter: blur(14px); opacity: 0; letter-spacing: .12em; }
   60% { opacity: 1; }
 }
 /* "Ver todos los trabajos": sin subrayado; al pasar el ratón crece un poco, como las fotos */
@@ -226,12 +229,12 @@ a, button { -webkit-tap-highlight-color: transparent; }
   padding-bottom: clamp(20px, 3vw, 36px);
 }
 .section-title {
-  margin: 0; font-family: var(--display); font-size: var(--step-2); font-weight: 300; line-height: 1;
-  letter-spacing: -.02em;
+  margin: 0; font-family: var(--display); font-stretch: 125%; text-transform: uppercase;
+  font-size: var(--step-1); font-weight: 400; line-height: 1.1; letter-spacing: .2em;
 }
 .work { padding-block: clamp(16px, 3vw, 40px) clamp(64px, 10vw, 140px); }
 .work-title {
-  margin: 0; font-family: var(--display); font-size: var(--step-3); font-weight: 200; line-height: .95; letter-spacing: -.03em;
+  margin: 0; font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-size: calc(var(--step-3) * .85); font-weight: 300; line-height: 1.05; letter-spacing: .06em;
 }
 /* Dial de filtros: una rueda grande de la que solo asoma el borde de arriba, con marcas como un
    anillo de enfoque. La opción que queda bajo la marca central es la elegida */
@@ -325,7 +328,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 .card-text { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2rem 1rem; }
 /* Los títulos de proyectos van en cursiva, como los títulos de películas */
-.card-title { font-family: var(--display); font-style: italic; font-size: calc(var(--step-1) * 1.15); font-weight: 300; letter-spacing: -.01em; line-height: 1.1; }
+.card-title { font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-size: .9rem; font-weight: 500; letter-spacing: .14em; line-height: 1.3; }
 .card-meta { color: var(--muted); font-size: var(--step--1); align-self: center; }
 .empty { color: var(--muted); }
 
@@ -344,8 +347,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .back:hover { color: var(--fg); }
 .project-title {
   margin: 0 0 clamp(20px, 3vw, 40px);
-  font-family: var(--display); font-style: italic; font-weight: 200;
-  font-size: calc(var(--step-3) * 1.1); line-height: 1.05; letter-spacing: -.03em; text-wrap: balance;
+  font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-weight: 300;
+  font-size: calc(var(--step-3) * .85); line-height: 1.08; letter-spacing: .06em; text-wrap: balance;
   padding-bottom: .08em;
   animation: title-in 1s var(--ease) .2s both;
 }
@@ -365,11 +368,11 @@ a, button { -webkit-tap-highlight-color: transparent; }
   text-decoration: none; border-top: 1px solid var(--line); padding-top: 1.4rem;
 }
 .next-label { color: var(--muted); font-size: var(--step--1); }
-.next-title { font-family: var(--display); font-style: italic; font-size: var(--step-2); font-weight: 300; letter-spacing: -.02em; line-height: 1.05; }
+.next-title { font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-size: var(--step-2); font-weight: 300; letter-spacing: .08em; line-height: 1.12; }
 
 /* Pie */
 .site-foot { padding-block: clamp(48px, 8vw, 100px) calc(clamp(32px, 5vw, 56px) + 72px); border-top: 1px solid var(--line); }
-.foot-title { margin: 0 0 1.5rem; font-family: var(--display); font-style: italic; font-size: var(--step-2); font-weight: 200; line-height: 1.05; letter-spacing: -.02em; text-wrap: balance; }
+.foot-title { margin: 0 0 1.5rem; font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-size: var(--step-1); font-weight: 400; line-height: 1.3; letter-spacing: .2em; text-wrap: balance; }
 .foot-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem 2rem; }
 .mail { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; min-width: 0; }
 .mail-address { font-size: var(--step-1); user-select: all; overflow-wrap: anywhere; }
@@ -580,7 +583,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
   }
   .brand { grid-column: 2; text-align: center; justify-items: center; }
-  .brand-name { font-size: 1.3rem; }
+  .brand-name { font-size: .82rem; letter-spacing: .2em; }
   .brand-role { font-size: .75rem; }
   /* Botón de menú: solo la palabra en cursiva, con un punto que se rellena al abrir */
   .menu-toggle {
@@ -588,7 +591,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
     display: inline-flex; align-items: center; gap: .45rem;
     min-height: 44px; padding: 0 0 0 .5rem;
     background: none; border: 0; cursor: pointer;
-    font-family: var(--display); font-style: italic; font-weight: 300; font-size: 1.15rem;
+    font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-weight: 500; font-size: .8rem; letter-spacing: var(--credit-track);
     color: var(--fg);
   }
   .menu-icon {
@@ -615,8 +618,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
   }
   .site-nav a {
     display: block; text-align: center; padding: .5rem 1.5rem;
-    font-family: var(--display); font-style: italic; font-weight: 300;
-    font-size: clamp(2.6rem, 12vw, 3.4rem); line-height: 1.1;
+    font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-weight: 300;
+    font-size: clamp(1.6rem, 7.5vw, 2.2rem); line-height: 1.5; letter-spacing: .12em;
     color: var(--fg);
     opacity: 0; transform: translateY(14px);
     transition: opacity .3s ease, transform .5s var(--ease);
@@ -636,21 +639,21 @@ a, button { -webkit-tap-highlight-color: transparent; }
 
 
   .intro { padding-block: 40px 56px; }
-  .intro-line { font-size: clamp(2.5rem, 10.5vw, 3.4rem); }
+  .intro-line { font-size: clamp(1.6rem, 7.4vw, 2.3rem); }
 
   .section-head .all-link { display: none; }
   .all-link.all-link-bottom {
     display: block; margin-top: 2.2rem; padding: .9rem 0; text-align: center;
     border: 1px solid var(--line); border-radius: 999px; color: var(--fg); transform-origin: 50% 50%;
   }
-  .section-title { font-size: 2rem; }
+  .section-title { font-size: 1rem; }
 
   .dials { margin-bottom: 6px; }
 
   .card-text { flex-direction: column; gap: .1rem; }
   .card-meta { align-self: flex-start; }
 
-  .project-title { font-size: clamp(2.8rem, 13vw, 4rem); }
+  .project-title { font-size: clamp(1.7rem, 8.4vw, 2.6rem); }
   .project-summary { font-size: 1.15rem; }
   .credits { grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr); }
 
@@ -687,7 +690,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
   display: flex; align-items: baseline; gap: .8rem; white-space: nowrap;
   opacity: clamp(0, calc((var(--p, 0) - .75) * 4), 1);
 }
-.tilt-title { font-family: var(--display); font-style: italic; font-weight: 300; font-size: 1.25rem; }
+.tilt-title { font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-weight: 500; font-size: .9rem; letter-spacing: .14em; }
 .tilt-meta { font-size: .8rem; color: var(--muted); }
 .tilt-frame img { transition: opacity .16s ease; }
 .tilt-frame img.swap { opacity: 0; }
@@ -701,3 +704,11 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .tilt-prev { left: 16px; }
 .tilt-next { right: 16px; }
 :root[data-tilt="turn"] .tilt-nav { display: none; }
+
+/* Etiquetas pequeñas como líneas de créditos: mayúsculas, algo anchas y muy espaciadas */
+.brand-role, .site-nav, .card-meta, .about-facts dt, .credits dt, .back, .next-label,
+.all-link, .foot-links, .foot-small, .video-link, .btn-quiet, .seg-item, .tilt-meta, .media-hint {
+  font-stretch: 112%; text-transform: uppercase; letter-spacing: var(--credit-track); font-size: .7rem;
+}
+.about-text, .project-summary { font-weight: 300; }
+.about-facts, .credits { align-items: baseline; }
