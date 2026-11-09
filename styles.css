@@ -405,7 +405,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 }
 @keyframes panel-in { from { opacity: 0; transform: translateY(8px) scale(.96); } }
 .grade-panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.grade-panel-title { font-weight: 600; font-size: 13px; color: #f0efec; }
+.grade-panel-title { font-weight: 600; font-size: 11px; font-stretch: 112%; text-transform: uppercase; letter-spacing: var(--credit-track); color: #f0efec; }
 .grade-panel .btn-quiet { color: #a9a8a5; border-color: #3b3b3f; font-size: 11px; }
 .grade-panel .btn-quiet:hover { color: #fff; border-color: #6a6a70; }
 
@@ -439,7 +439,7 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .wheel-puck:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
 .master { display: grid; gap: 6px; margin-top: 14px; }
-.master-label { color: #a9a8a5; font-size: 11px; }
+.master-label { color: #a9a8a5; font-size: 10px; font-stretch: 112%; text-transform: uppercase; letter-spacing: var(--credit-track); }
 .master-range { width: 100%; margin: 0; accent-color: #d7d6d3; background: transparent; }
 .master-range::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, #000, #fff); }
 .master-range::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, #000, #fff); }
@@ -452,11 +452,14 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .rgb i { font-style: normal; font-weight: 600; }
 .rgb b { font-weight: 400; color: #e8e7e4; }
 .rgb .r { color: var(--scope-r); } .rgb .g { color: var(--scope-g); } .rgb .b { color: var(--scope-b); }
-/* Grano: 50D fino, 500T grueso, Noise Reduction sin grano */
+/* Grano: 50D fino, 500T grueso, Noise Reduction sin grano.
+   Con las etiquetas en mayúsculas espaciadas la píldora debe caber en el ancho del panel:
+   letra y huecos algo más justos aquí, y centrada (el margen invisible de .seg-scroll se queda) */
 .grain-pick { display: grid; gap: 6px; margin-top: 14px; }
-#grain-pick { display: flex; justify-content: center; }
+#grain-pick { min-width: 0; }
+#grain-pick .seg-scroll { text-align: center; }
 .grade-panel .seg { border-color: #3b3b3f; background: #1a1a1c; }
-.grade-panel .seg-item { padding: .5em .95em; font-size: 11px; color: #a9a8a5; }
+.grade-panel .seg-item { padding: .6em .8em; font-size: 10px; letter-spacing: .1em; color: #a9a8a5; }
 .grade-panel .seg-item:hover { color: #fff; }
 .grade-panel .seg-thumb { background: #e8e7e4; }
 .grade-panel .seg-thumb .seg-item { color: #141414; }
