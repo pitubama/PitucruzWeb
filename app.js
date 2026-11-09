@@ -191,8 +191,6 @@
     // Si se ha arrastrado, soltar encima de un trabajo no lo abre
     rail.addEventListener("click", (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
     rail.addEventListener("dragstart", (e) => e.preventDefault());
-    // La curvatura se mide con la posición de cada foto: al deslizar hay que volver a medir
-    rail.addEventListener("scroll", () => queueMeasure(120), { passive: true });
   }
 
   function renderWork() {
@@ -359,7 +357,6 @@
   /* ---------- Router por hash: #trabajo, #p-slug, o portada ---------- */
   let currentView = null;
   // Se rellena más abajo (curvatura): se llama justo después de pintar una página nueva
-  let onPaint = () => {};
   // Al cambiar de página los bordes (desenfoque y fundido) se apagan y vuelven a aparecer suaves
   let edgesT = 0;
   const edgesOff = () => { clearTimeout(edgesT); root.setAttribute("data-edges-off", ""); };
@@ -382,8 +379,6 @@
       const target = view === "home" && hash && document.getElementById(hash);
       if (target) target.scrollIntoView();
       else window.scrollTo(0, 0);
-      // La curvatura se calcula ya, antes de que se vea la página: así no entra plana y luego salta
-      onPaint();
       document.querySelectorAll(".site-nav a, .quick-nav a").forEach((a) => a.toggleAttribute("aria-current", a.getAttribute("href") === "#" + hash));
     };
     const changesView = view !== currentView && currentView !== null;
@@ -500,56 +495,6 @@
     if (!mobile.matches || head.hasAttribute("data-open")) { if (hidden) setHidden(0); return; }
     setHidden(Math.min(head.offsetHeight, Math.max(0, hidden + delta), y));
   }, { passive: true });
-  /* Cerca de los bordes de la pantalla el contenido se curva hacia ti, como en una pantalla curva.
-     Cada bloque se inclina en 3D según lo cerca que esté del borde y se ensancha un poco */
-  const CURVE = ".intro-line, .section-head, .card-frame, .card-text, .all-link-bottom, .about-facts dt, .about-facts dd, .about-text p, .back, .project-title, .project-summary, .credits dt, .credits dd, .media > *, .next, .site-foot > *";
-  let curveEls = [], curveRaf = 0;
-  // Las posiciones se miden sin transformar y se guardan; al hacer scroll solo se recalcula el ángulo
-  function measureCurve() {
-    curveEls = [...document.querySelectorAll(CURVE)];
-    curveEls.forEach((el) => { el.style.transform = ""; });
-    const y = window.scrollY;
-    curveEls = curveEls.map((el) => { const r = el.getBoundingClientRect(); return { el, top: r.top + y, h: r.height, left: r.left }; });
-    updateCurve();
-  }
-  function updateCurve() {
-    curveRaf = 0;
-    if (reduceMotion) {
-      curveEls.forEach(({ el }) => { if (el.classList.contains("curve")) { el.classList.remove("curve"); el.style.transform = el.style.transformOrigin = ""; } });
-      return;
-    }
-    const vh = window.innerHeight, vw = document.documentElement.clientWidth, cx = vw / 2, zone = vh * 0.2, y = window.scrollY;
-    // En pantallas grandes la perspectiva se aleja para que la curva se sienta igual que en el móvil
-    const persp = Math.max(620, Math.min(vw, vh * 1.6));
-    curveEls.forEach(({ el, top: docTop, h, left }) => {
-      const top = docTop - y, bottom = top + h;
-      if (bottom < -60 || top > vh + 60) { if (el.style.transform) el.style.transform = ""; return; }
-      const half = Math.min(h, 100) / 2;
-      const d = Math.max(0, Math.min(bottom - half, vh - (top + half)));
-      const t = Math.max(0, 1 - d / zone), k = t * t;
-      if (k < 0.002) { if (el.style.transform) el.style.transform = ""; return; }
-      // Arriba se inclina hacia un lado y abajo hacia el otro: el borde que toca la pantalla se acerca
-      const side = top + h / 2 < vh / 2 ? -1 : 1;
-      // Arriba del todo de la página no hay nada que curvar: así el título y los filtros se ven nítidos
-      if (side < 0 && y < 200) { const f = y / 200; if (k * f < 0.002) { if (el.style.transform) el.style.transform = ""; return; } }
-      el.classList.add("curve");
-      el.style.transformOrigin = `${(cx - left).toFixed(1)}px 50%`;
-      const kk = side < 0 ? k * Math.min(1, y / 200) : k;
-      el.style.transform = `perspective(${persp.toFixed(0)}px) rotateX(${(side * 14 * kk).toFixed(2)}deg) scaleX(${(1 + 0.02 * kk).toFixed(4)})`;
-    });
-  }
-  const queueCurve = () => { if (!curveRaf) curveRaf = requestAnimationFrame(updateCurve); };
-  let measureT = 0;
-  const queueMeasure = (ms = 60) => { clearTimeout(measureT); measureT = setTimeout(() => requestAnimationFrame(measureCurve), ms); };
-  window.addEventListener("scroll", queueCurve, { passive: true });
-  window.addEventListener("resize", () => queueMeasure());
-  window.addEventListener("load", () => queueMeasure(0));
-  if (document.fonts) document.fonts.ready.then(() => queueMeasure(0));
-  // Al cambiar de página se mide al entrar y otra vez cuando han terminado las animaciones de entrada
-  new MutationObserver(() => { queueMeasure(40); setTimeout(() => queueMeasure(0), 900); }).observe(main, { childList: true });
-  if ("ResizeObserver" in window) new ResizeObserver(() => queueMeasure()).observe(main);
-  measureCurve();
-  onPaint = measureCurve;
 
   /* Escritorio: la rueda del ratón desplaza la página con inercia, deslizándose hasta su sitio.
      Si otra cosa mueve la página (teclado, un enlace, la barra) se suelta y la deja hacer */

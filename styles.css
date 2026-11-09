@@ -122,27 +122,14 @@ button { font: inherit; color: inherit; }
   .quick-nav a:hover { color: var(--fg); transform: scale(1.06); }
   .quick-nav a[aria-current] { color: var(--fg); }
 }
-/* Bordes de arriba y abajo: desenfoque progresivo en cinco capas (cada una más fuerte y más
-   pegada al borde, con máscaras solapadas para que no se vean escalones) y encima un fundido
-   suave al color del fondo, así lo desenfocado se disuelve en vez de quedarse como una mancha */
+/* Bordes de arriba y abajo: un fundido suave al color del fondo, sin desenfoque */
 .glass-edge {
   display: block; position: fixed; left: 0; right: 0; z-index: 24; pointer-events: none;
   --dir: to bottom;
 }
 .glass-edge.top { top: 0; height: calc(130px + env(safe-area-inset-top, 0px)); opacity: 0; transition: opacity .35s ease; }
 .glass-edge.bottom { bottom: 0; height: calc(110px + env(safe-area-inset-bottom, 0px)); --dir: to top; }
-.glass-edge i {
-  position: absolute; inset: 0;
-  -webkit-backdrop-filter: blur(var(--b)); backdrop-filter: blur(var(--b));
-  -webkit-mask-image: linear-gradient(var(--dir), #000 0%, #000 var(--s), transparent var(--e));
-  mask-image: linear-gradient(var(--dir), #000 0%, #000 var(--s), transparent var(--e));
-}
-.glass-edge i:nth-child(1) { --b: 1px;  --s: 55%; --e: 100%; -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); }
-.glass-edge i:nth-child(2) { --b: 2px;  --s: 40%; --e: 80%; }
-.glass-edge i:nth-child(3) { --b: 3px;  --s: 28%; --e: 62%; }
-.glass-edge i:nth-child(4) { --b: 4px;  --s: 16%; --e: 45%; }
-.glass-edge i:nth-child(5) { --b: 6px;  --s: 6%;  --e: 28%; }
-/* Fundido al color del fondo, encima de las capas de desenfoque */
+/* Fundido al color del fondo */
 .glass-edge > b {
   position: absolute; inset: 0;
   background: var(--grain-img) 0 0 / var(--grain-size), var(--bg);
@@ -154,18 +141,14 @@ button { font: inherit; color: inherit; }
    por detrás de la cabecera, y asoma por su degradado */
 :root[data-scrolled] .glass-edge.top { opacity: 1; }
 /* Al cambiar de página los bordes se apagan y vuelven con un fundido, en vez de cortarse */
-.glass-edge > i, .glass-edge > b { opacity: 1; transition: opacity .6s ease; }
-:root[data-edges-off] .glass-edge > i, :root[data-edges-off] .glass-edge > b { opacity: 0; transition: none; }
+.glass-edge > b { opacity: 1; transition: opacity .6s ease; }
+:root[data-edges-off] .glass-edge > b { opacity: 0; transition: none; }
 /* En escritorio los bordes son algo más altos, a juego con la pantalla */
 @media (min-width: 760px) {
   .glass-edge.top { height: 150px; }
   .glass-edge.bottom { height: 130px; }
 }
 
-/* Curvatura: lo que se acerca a los bordes se inclina en 3D (lo calcula app.js).
-   Al ensancharse un poco no debe aparecer scroll horizontal */
-html, body { overflow-x: clip; }
-.curve { will-change: transform; backface-visibility: hidden; }
 .all-link.all-link-bottom { display: none; }
 
 main:focus { outline: none; }
@@ -501,32 +484,20 @@ a, button { -webkit-tap-highlight-color: transparent; }
 /* La cabecera y el botón de color se quedan quietos durante la transición */
 .site-head { view-transition-name: site-head; }
 .grade { view-transition-name: grade; }
-/* Los bordes desenfocados no se cortan al cambiar de página (escritorio). Mientras los fotogramas
-   vuelan, unas piezas vacías (.edge-vt) con nombre propio quedan por encima de todo y sus grupos de
-   transición repiten las cinco capas de desenfoque y el fundido del borde de abajo, con los mismos
-   valores que en reposo. El borde de verdad se esconde en la página nueva y vuelve al instante al
+/* El fundido del borde de abajo no se corta al cambiar de página (escritorio). Mientras los fotogramas
+   vuelan, una pieza vacía (.edge-vt) con nombre propio queda por encima de todo y su grupo de
+   transición repite el fundido, con los mismos valores que en reposo. El borde de verdad se esconde en la página nueva y vuelve al instante al
    acabar, así nunca se ven los dos a la vez ni hay salto.
-   Ojo: no poner nombre al borde de verdad ni a sus capas: con máscara o desenfoque dentro, el
-   navegador las pinta sin máscara al empezar la transición (una franja borrosa de golpe) */
+   Ojo: no poner nombre al borde de verdad ni a su capa: con máscara dentro, el navegador la
+   pinta sin máscara al empezar la transición (una franja de golpe) */
 .edge-vt { display: none; }
 @media (min-width: 760px) {
   .edge-vt { display: block; position: fixed; left: 0; right: 0; bottom: 0; height: 130px; pointer-events: none; z-index: 27; }
-  .edge-vt > u { position: absolute; inset: 0; }
-  .edge-vt > u:nth-child(1) { view-transition-name: edge-v1; }
-  .edge-vt > u:nth-child(2) { view-transition-name: edge-v2; }
-  .edge-vt > u:nth-child(3) { view-transition-name: edge-v3; }
-  .edge-vt > u:nth-child(4) { view-transition-name: edge-v4; }
-  .edge-vt > u:nth-child(5) { view-transition-name: edge-v5; }
-  .edge-vt > u:nth-child(6) { view-transition-name: edge-v6; }
+  .edge-vt > u { position: absolute; inset: 0; view-transition-name: edge-v6; }
 }
-::view-transition-group(edge-v1), ::view-transition-group(edge-v2), ::view-transition-group(edge-v3), ::view-transition-group(edge-v4), ::view-transition-group(edge-v5), ::view-transition-group(edge-v6) { animation: none; }
-::view-transition-old(edge-v1), ::view-transition-old(edge-v2), ::view-transition-old(edge-v3), ::view-transition-old(edge-v4), ::view-transition-old(edge-v5), ::view-transition-old(edge-v6) { display: none; }
-::view-transition-new(edge-v1), ::view-transition-new(edge-v2), ::view-transition-new(edge-v3), ::view-transition-new(edge-v4), ::view-transition-new(edge-v5), ::view-transition-new(edge-v6) { animation: none; }
-::view-transition-group(edge-v1) { -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); }
-::view-transition-group(edge-v2) { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); }
-::view-transition-group(edge-v3) { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); }
-::view-transition-group(edge-v4) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); }
-::view-transition-group(edge-v5) { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); }
+::view-transition-group(edge-v6) { animation: none; }
+::view-transition-old(edge-v6) { display: none; }
+::view-transition-new(edge-v6) { animation: none; }
 ::view-transition-group(edge-v6) {
   background: var(--grain-img) 0 0 / var(--grain-size), var(--bg); background-blend-mode: soft-light, normal;
   -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%);
