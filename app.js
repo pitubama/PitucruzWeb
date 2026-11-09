@@ -518,7 +518,7 @@
       curveEls.forEach(({ el }) => { if (el.classList.contains("curve")) { el.classList.remove("curve"); el.style.transform = el.style.transformOrigin = ""; } });
       return;
     }
-    const vh = window.innerHeight, vw = document.documentElement.clientWidth, cx = vw / 2, zone = vh * 0.3, y = window.scrollY;
+    const vh = window.innerHeight, vw = document.documentElement.clientWidth, cx = vw / 2, zone = vh * 0.2, y = window.scrollY;
     // En pantallas grandes la perspectiva se aleja para que la curva se sienta igual que en el móvil
     const persp = Math.max(620, Math.min(vw, vh * 1.6));
     curveEls.forEach(({ el, top: docTop, h, left }) => {
@@ -535,7 +535,7 @@
       el.classList.add("curve");
       el.style.transformOrigin = `${(cx - left).toFixed(1)}px 50%`;
       const kk = side < 0 ? k * Math.min(1, y / 200) : k;
-      el.style.transform = `perspective(${persp.toFixed(0)}px) rotateX(${(side * 32 * kk).toFixed(2)}deg) scaleX(${(1 + 0.05 * kk).toFixed(4)})`;
+      el.style.transform = `perspective(${persp.toFixed(0)}px) rotateX(${(side * 14 * kk).toFixed(2)}deg) scaleX(${(1 + 0.02 * kk).toFixed(4)})`;
     });
   }
   const queueCurve = () => { if (!curveRaf) curveRaf = requestAnimationFrame(updateCurve); };

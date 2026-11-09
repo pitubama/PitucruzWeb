@@ -139,9 +139,9 @@ button { font: inherit; color: inherit; }
 }
 .glass-edge i:nth-child(1) { --b: 1px;  --s: 55%; --e: 100%; -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); }
 .glass-edge i:nth-child(2) { --b: 2px;  --s: 40%; --e: 80%; }
-.glass-edge i:nth-child(3) { --b: 4px;  --s: 28%; --e: 62%; }
-.glass-edge i:nth-child(4) { --b: 7px;  --s: 16%; --e: 45%; }
-.glass-edge i:nth-child(5) { --b: 12px; --s: 6%;  --e: 28%; }
+.glass-edge i:nth-child(3) { --b: 3px;  --s: 28%; --e: 62%; }
+.glass-edge i:nth-child(4) { --b: 4px;  --s: 16%; --e: 45%; }
+.glass-edge i:nth-child(5) { --b: 6px;  --s: 6%;  --e: 28%; }
 /* Fundido al color del fondo, encima de las capas de desenfoque */
 .glass-edge > b {
   position: absolute; inset: 0;
@@ -524,9 +524,9 @@ a, button { -webkit-tap-highlight-color: transparent; }
 ::view-transition-new(edge-v1), ::view-transition-new(edge-v2), ::view-transition-new(edge-v3), ::view-transition-new(edge-v4), ::view-transition-new(edge-v5), ::view-transition-new(edge-v6) { animation: none; }
 ::view-transition-group(edge-v1) { -webkit-backdrop-filter: blur(1px) saturate(1.15); backdrop-filter: blur(1px) saturate(1.15); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); }
 ::view-transition-group(edge-v2) { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); mask-image: linear-gradient(to top, #000 0%, #000 40%, transparent 80%); }
-::view-transition-group(edge-v3) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); }
-::view-transition-group(edge-v4) { -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); }
-::view-transition-group(edge-v5) { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); }
+::view-transition-group(edge-v3) { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); mask-image: linear-gradient(to top, #000 0%, #000 28%, transparent 62%); }
+::view-transition-group(edge-v4) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); mask-image: linear-gradient(to top, #000 0%, #000 16%, transparent 45%); }
+::view-transition-group(edge-v5) { -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); mask-image: linear-gradient(to top, #000 0%, #000 6%, transparent 28%); }
 ::view-transition-group(edge-v6) {
   background: var(--grain-img) 0 0 / var(--grain-size), var(--bg); background-blend-mode: soft-light, normal;
   -webkit-mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, rgba(0,0,0,.82) 14%, rgba(0,0,0,.55) 34%, rgba(0,0,0,.28) 58%, rgba(0,0,0,.09) 80%, transparent 100%);
