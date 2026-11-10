@@ -1,33 +1,6 @@
 {
   "projects": [
     {
-      "title": "Desmayo",
-      "slug": "desmayo",
-      "category": "Cortometraje",
-      "year": 2026,
-      "featured": true,
-      "stills": [
-        "img/Desmayo/1.31.1_1.31.1_web.jpg",
-        "img/Desmayo/1.23.1_1.23.1_web.jpg",
-        "img/Desmayo/1.39.1_1.39.1_web.jpg",
-        "img/Desmayo/1.11.1_1.11.1_web.jpg",
-        "img/Desmayo/1.30.1_1.30.1_web.jpg",
-        "img/Desmayo/1.26.1_1.26.1_web.jpg",
-        "img/Desmayo/1.20.2_1.20.2_web.jpg",
-        "img/Desmayo/1.33.1_1.33.1_web.jpg"
-      ],
-      "credits": [
-        {
-          "role": "Dirección",
-          "name": "Miguel Toledo"
-        },
-        {
-          "role": "Productora",
-          "name": "Mi Catarsis Films"
-        }
-      ]
-    },
-    {
       "title": "Padre no hay mas que uno: La serie",
       "slug": "pnhmqu",
       "category": "Serie",
@@ -62,6 +35,33 @@
         {
           "role": "Productora",
           "name": "Bowfinger International Pictures S.L"
+        }
+      ]
+    },
+    {
+      "title": "Desmayo",
+      "slug": "desmayo",
+      "category": "Cortometraje",
+      "year": 2026,
+      "featured": true,
+      "stills": [
+        "img/Desmayo/1.31.1_1.31.1_web.jpg",
+        "img/Desmayo/1.23.1_1.23.1_web.jpg",
+        "img/Desmayo/1.39.1_1.39.1_web.jpg",
+        "img/Desmayo/1.11.1_1.11.1_web.jpg",
+        "img/Desmayo/1.30.1_1.30.1_web.jpg",
+        "img/Desmayo/1.26.1_1.26.1_web.jpg",
+        "img/Desmayo/1.20.2_1.20.2_web.jpg",
+        "img/Desmayo/1.33.1_1.33.1_web.jpg"
+      ],
+      "credits": [
+        {
+          "role": "Dirección",
+          "name": "Miguel Toledo"
+        },
+        {
+          "role": "Productora",
+          "name": "Mi Catarsis Films"
         }
       ]
     },
