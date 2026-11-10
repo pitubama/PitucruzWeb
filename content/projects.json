@@ -28,14 +28,12 @@
       ]
     },
     {
-      "title": "La última noche",
-      "slug": "la-ultima-noche",
-      "category": "Videoclip",
+      "title": "Padre no hay mas que uno: La serie",
+      "slug": "pnhmqu",
+      "category": "Serie",
       "year": 2026,
       "featured": true,
-      "summary": "Neón, humo y piel. Un look nocturno saturado que protege los tonos de piel dentro de una paleta magenta.",
-      "camera": "Sony Venice 2 · X-OCN",
-      "video": "https://youtu.be/aqz-KE-bpKQ",
+      "video": "https://www.youtube.com/watch?v=QR3_yfrjwy4",
       "stills": [
         "img/la-ultima-noche-1.jpg",
         "img/la-ultima-noche-2.jpg",
@@ -44,11 +42,11 @@
       ],
       "credits": [
         {
-          "role": "Artista",
-          "name": "Nadia Sol"
+          "role": "Dirección",
+          "name": "Inés de León / Raúl Navarro"
         },
         {
-          "role": "Dirección",
+          "role": "Dirección de fotografía",
           "name": "Marcos Vidal"
         },
         {
