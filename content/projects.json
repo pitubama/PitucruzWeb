@@ -38,6 +38,38 @@
       ]
     },
     {
+      "title": "Nota de Corte",
+      "slug": "ndc",
+      "category": "Cortometraje",
+      "year": 2026,
+      "featured": true,
+      "stills": [
+        "img/NDC/1.48.1_1.48.1.jpg",
+        "img/NDC/1.30.1_1.30.1.jpg",
+        "img/NDC/1.88.1_1.88.1.jpg",
+        "img/NDC/1.14.1_1.14.1.jpg",
+        "img/NDC/1.35.1_1.35.1.jpg",
+        "img/NDC/1.77.1_1.77.1.jpg",
+        "img/NDC/1.78.1_1.78.1.jpg",
+        "img/NDC/1.87.1_1.87.1.jpg",
+        "img/NDC/1.83.1_1.83.1.jpg"
+      ],
+      "credits": [
+        {
+          "role": "Dirección",
+          "name": "Héctor Fernández Cachón"
+        },
+        {
+          "role": "Dirección de Fotografía",
+          "name": "Dani Lisón"
+        },
+        {
+          "role": "Productora",
+          "name": "Tornasol Media"
+        }
+      ]
+    },
+    {
       "title": "Desmayo",
       "slug": "desmayo",
       "category": "Cortometraje",
@@ -86,38 +118,6 @@
         {
           "role": "Dirección de fotografía",
           "name": "Ismael de la Cruz"
-        }
-      ]
-    },
-    {
-      "title": "Nota de Corte",
-      "slug": "ndc",
-      "category": "Cortometraje",
-      "year": 2026,
-      "featured": true,
-      "stills": [
-        "img/NDC/1.48.1_1.48.1.jpg",
-        "img/NDC/1.30.1_1.30.1.jpg",
-        "img/NDC/1.88.1_1.88.1.jpg",
-        "img/NDC/1.14.1_1.14.1.jpg",
-        "img/NDC/1.35.1_1.35.1.jpg",
-        "img/NDC/1.77.1_1.77.1.jpg",
-        "img/NDC/1.78.1_1.78.1.jpg",
-        "img/NDC/1.87.1_1.87.1.jpg",
-        "img/NDC/1.83.1_1.83.1.jpg"
-      ],
-      "credits": [
-        {
-          "role": "Dirección",
-          "name": "Héctor Fernández Cachón"
-        },
-        {
-          "role": "Dirección de Fotografía",
-          "name": "Dani Lisón"
-        },
-        {
-          "role": "Productora",
-          "name": "Tornasol Media"
         }
       ]
     }
