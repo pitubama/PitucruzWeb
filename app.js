@@ -105,13 +105,11 @@
     return [...projects.filter((p) => p.featured), ...projects.filter((p) => !p.featured)];
   }
 
-  function renderHome() {
-    const picks = featured();
-    main.innerHTML = `
-      <section class="intro wrap" aria-label="Presentación">
-        <p class="intro-line">${esc(site.tagline)}</p>
-      </section>
+  // Portada: mientras se elige el diseño nuevo, ?portada=a|b|c enseña cada propuesta
+  const LANDING = (new URLSearchParams(location.search).get("portada") || "").toLowerCase();
 
+  function railSection(picks) {
+    return `
       <section class="section wrap" aria-labelledby="destacados-title">
         <div class="section-head">
           <h2 class="section-title" id="destacados-title">Trabajos recientes</h2>
@@ -121,11 +119,130 @@
           ${picks.map((p, i) => cardHTML(p, i, picks.length, "slide")).join("")}
         </ul>
         <a class="all-link all-link-bottom" href="#trabajo">Ver todos los trabajos</a>
-      </section>
+      </section>`;
+  }
 
-      <section class="section wrap" id="sobre-mi" aria-labelledby="sobre-title">
-        <div class="section-head"><h2 class="section-title" id="sobre-title">Sobre mí</h2></div>
+  function renderHome() {
+    const picks = featured();
+    root.dataset.landing = ["a", "b", "c"].includes(LANDING) ? LANDING : "";
+    if (LANDING === "a") return renderHomeScreen(picks);
+    if (LANDING === "b") return renderHomeCredits(picks);
+    if (LANDING === "c") return renderHomeSheet();
+    main.innerHTML = `
+      <section class="intro wrap" aria-label="Presentación">
+        <p class="intro-line">${esc(site.tagline)}</p>
+      </section>
+      ${railSection(picks)}`;
+    makeRail(document.getElementById("rail"));
+  }
+
+  /* Propuesta A, "Pantalla": un fotograma grande a su formato original que va cambiando de proyecto
+     en proyecto, con su rótulo debajo como una claqueta */
+  function renderHomeScreen(picks) {
+    const slides = picks.map((p) => ({ p, src: p.stills[0] }));
+    main.innerHTML = `
+      <section class="screen wrap" aria-label="Trabajos destacados">
+        <p class="screen-tagline">${esc(site.tagline)}</p>
+        <a class="screen-stage" id="screen-stage" href="#p-${esc(slides[0].p.slug)}">
+          ${slides.map((s, i) => `<img src="${esc(s.src)}" alt="Fotograma de ${esc(s.p.title)}" class="${i ? "" : "is-on"}" style="--ar:${ratioFor(s.src)}">`).join("")}
+        </a>
+        <div class="screen-slate">
+          <span class="screen-count" id="screen-count">01 / ${String(slides.length).padStart(2, "0")}</span>
+          <a class="screen-title" id="screen-title" href="#p-${esc(slides[0].p.slug)}">${esc(slides[0].p.title)}</a>
+          <span class="screen-meta" id="screen-meta">${esc(slides[0].p.category)}, ${esc(slides[0].p.year)}</span>
+          <span class="screen-ticks" aria-hidden="true">${slides.map((_, i) => `<i class="${i ? "" : "is-on"}"></i>`).join("")}</span>
+        </div>
+        <div class="index-foot"><a class="all-link" href="#trabajo">Ver todos los trabajos</a><a class="all-link" href="#sobre-mi">Sobre mí</a></div>
+      </section>`;
+    const stage = document.getElementById("screen-stage");
+    const imgs = [...stage.querySelectorAll("img")], ticks = [...main.querySelectorAll(".screen-ticks i")];
+    let k = 0;
+    const show = (n) => {
+      k = (n + slides.length) % slides.length;
+      const { p } = slides[k];
+      imgs.forEach((im, i) => im.classList.toggle("is-on", i === k));
+      ticks.forEach((t, i) => t.classList.toggle("is-on", i === k));
+      stage.href = document.getElementById("screen-title").href = "#p-" + p.slug;
+      document.getElementById("screen-title").textContent = p.title;
+      document.getElementById("screen-meta").textContent = `${p.category}, ${p.year}`;
+      document.getElementById("screen-count").textContent = `${String(k + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+    };
+    clearInterval(renderHomeScreen.t);
+    if (!reduceMotion && slides.length > 1) renderHomeScreen.t = setInterval(() => {
+      if (!document.body.contains(stage)) return clearInterval(renderHomeScreen.t);
+      if (!document.hidden) show(k + 1);
+    }, 5000);
+  }
+
+  /* Propuesta B, "Créditos": la portada es un índice tipográfico, como los créditos de una película.
+     Al pasar por un título aparece su fotograma; en móvil cada fila lleva su miniatura */
+  function renderHomeCredits(picks) {
+    main.innerHTML = `
+      <section class="credits-index wrap" aria-label="Trabajos">
+        <p class="index-tagline">${esc(site.tagline)}</p>
+        <ol class="index-list" id="index-list">
+          ${projects.map((p, i) => `<li style="--ar:${ratioFor(p.stills[0])}">
+            <a href="#p-${esc(p.slug)}" data-src="${esc(p.stills[0])}">
+              <span class="index-num">${String(i + 1).padStart(2, "0")}</span>
+              <img class="index-thumb" src="${esc(p.stills[0])}" alt="" loading="${i < 3 ? "eager" : "lazy"}">
+              <span class="index-title">${esc(p.title)}</span>
+              <span class="index-meta"><span>${esc(p.category)}</span><span>${esc(p.year)}</span></span>
+            </a>
+          </li>`).join("")}
+        </ol>
+        <div class="index-preview" id="index-preview" aria-hidden="true">${projects.map((p) => `<img src="${esc(p.stills[0])}" alt="" data-src="${esc(p.stills[0])}">`).join("")}</div>
+        <div class="index-foot"><a class="all-link" href="#trabajo">Ver todos los trabajos</a><a class="all-link" href="#sobre-mi">Sobre mí</a></div>
+      </section>`;
+    const list = document.getElementById("index-list"), prev = document.getElementById("index-preview");
+    const set = (src) => {
+      prev.querySelectorAll("img").forEach((im) => im.classList.toggle("is-on", im.dataset.src === src));
+      list.classList.toggle("has-hover", !!src);
+    };
+    list.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") { set(a.dataset.src); a.parentElement.classList.add("is-hot"); } });
+      a.addEventListener("pointerleave", () => a.parentElement.classList.remove("is-hot"));
+      a.addEventListener("focus", () => set(a.dataset.src));
+    });
+    list.addEventListener("pointerleave", () => set(""));
+  }
+
+  /* Propuesta C, "Hoja de contactos": muchos fotogramas de todos los proyectos en filas justificadas,
+     cada uno a su formato original, como una hoja de contactos sobre la mesa de luz */
+  function renderHomeSheet() {
+    const per = 4, pool = [];
+    for (let k = 0; k < per; k++) projects.forEach((p) => { if (p.stills[k]) pool.push({ p, src: p.stills[k] }); });
+    main.innerHTML = `
+      <section class="sheet wrap" aria-label="Fotogramas de trabajos">
+        <p class="sheet-tagline">${esc(site.tagline)}</p>
+        <ul class="sheet-grid" id="sheet-grid">
+          ${pool.map(({ p, src }, i) => `<li style="--ar:${ratioFor(src)}" data-slug="${esc(p.slug)}">
+            <a href="#p-${esc(p.slug)}"><img src="${esc(src)}" alt="Fotograma de ${esc(p.title)}" loading="${i < 8 ? "eager" : "lazy"}">
+            <span class="sheet-cap">${esc(p.title)}<i>${esc(p.category)}, ${esc(p.year)}</i></span></a>
+          </li>`).join("")}
+        </ul>
+        <div class="index-foot"><a class="all-link" href="#trabajo">Ver todos los trabajos</a><a class="all-link" href="#sobre-mi">Sobre mí</a></div>
+      </section>`;
+    const grid = document.getElementById("sheet-grid");
+    // Al pasar por un fotograma se apagan los de otros proyectos
+    grid.addEventListener("pointerover", (e) => {
+      const li = e.target.closest("li"); if (!li || e.pointerType !== "mouse") return;
+      grid.dataset.hot = li.dataset.slug;
+      grid.querySelectorAll("li").forEach((x) => x.classList.toggle("is-dim", x.dataset.slug !== li.dataset.slug));
+    });
+    grid.addEventListener("pointerleave", () => grid.querySelectorAll("li").forEach((x) => x.classList.remove("is-dim")));
+    grid.addEventListener("load", (e) => {
+      const im = e.target; if (!(im instanceof HTMLImageElement) || !im.naturalWidth) return;
+      im.closest("li").style.setProperty("--ar", (im.naturalWidth / im.naturalHeight).toFixed(4));
+    }, true);
+  }
+
+  /* Sobre mí: página propia */
+  function renderAbout() {
+    main.innerHTML = `
+      <section class="about-page wrap" aria-labelledby="sobre-title">
+        <h1 class="work-title" id="sobre-title">Sobre mí</h1>
         <div class="about">
+          ${site.portrait ? `<img class="about-portrait" src="${esc(site.portrait)}" alt="${esc(site.name)}">` : ""}
           <dl class="about-facts">
             <dt>Base</dt><dd>${esc(site.city)}</dd>
             <dt>Herramienta</dt><dd>DaVinci Resolve Studio</dd>
@@ -134,8 +251,8 @@
           </dl>
           <div class="about-text">${(site.about || []).map((t) => `<p>${esc(t)}</p>`).join("")}</div>
         </div>
+        <a class="all-link about-next" href="#trabajo">Ver trabajos</a>
       </section>`;
-    makeRail(document.getElementById("rail"));
   }
 
   /* ---------- Carrusel: con ratón se arrastra (con inercia y un poco de chicle en los extremos);
@@ -368,18 +485,19 @@
   function route() {
     const hash = decodeURIComponent(location.hash.slice(1));
     const project = hash.startsWith("p-") ? bySlug(hash.slice(2)) : null;
-    const view = project ? "p:" + project.slug : hash === "trabajo" ? "work" : "home";
+    const view = project ? "p:" + project.slug : hash === "trabajo" ? "work" : hash === "sobre-mi" ? "about" : "home";
     const paint = () => {
       if (view !== currentView) {
         if (project) renderProject(project);
         else if (view === "work") renderWork();
+        else if (view === "about") renderAbout();
         else renderHome();
-        root.dataset.view = view === "work" ? "work" : view === "home" ? "home" : "project";
+        root.dataset.view = view === "work" || view === "home" || view === "about" ? view : "project";
         currentView = view;
         // La animación del titular de portada solo se ve en la primera carga
         requestAnimationFrame(() => (root.dataset.loaded = ""));
       }
-      document.title = project ? `${project.title}, ${site.name}` : view === "work" ? `Trabajos, ${site.name}` : site.name;
+      document.title = project ? `${project.title}, ${site.name}` : view === "work" ? `Trabajos, ${site.name}` : view === "about" ? `Sobre mí, ${site.name}` : site.name;
       const target = view === "home" && hash && document.getElementById(hash);
       if (target) target.scrollIntoView();
       else window.scrollTo(0, 0);

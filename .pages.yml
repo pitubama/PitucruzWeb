@@ -94,6 +94,7 @@ content:
       - { name: email, label: Email, type: string }
       - { name: instagram, label: Instagram (enlace), type: string }
       - { name: vimeo, label: Vimeo (enlace), type: string }
+      - { name: portrait, label: Foto para Sobre mí (opcional), type: image }
       - name: about
         label: Sobre mí (un párrafo por elemento)
         type: text
