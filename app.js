@@ -80,7 +80,7 @@
         <div class="card-frame" data-vt="still-${esc(p.slug)}" style="view-transition-name: still-${esc(p.slug)}"><img src="${esc(p.stills[0])}" alt="Fotograma de ${esc(p.title)}" loading="${i < 2 ? "eager" : "lazy"}"></div>
         <div class="card-text">
           <span class="card-title">${esc(p.title)}</span>
-          <span class="card-meta">${esc(p.category)}, ${esc(p.year)}${p.video ? ". Con vídeo" : ""}</span>
+          <span class="card-meta">${esc(p.category)}, ${esc(p.year)}</span>
         </div>
       </a>
     </li>`;
@@ -320,21 +320,25 @@
     return { set: (v) => select(items.findIndex((it) => it.value === v)) };
   }
 
-  function videoHTML(v, title) {
+  function videoHTML(v, title, vt) {
     if (!v || !v.id) return "";
     const isVimeo = v.provider === "vimeo";
     const src = isVimeo
       ? `https://player.vimeo.com/video/${encodeURIComponent(v.id)}?${v.hash ? `h=${encodeURIComponent(v.hash)}&` : ""}dnt=1&title=0&byline=0&portrait=0`
       : `https://www.youtube-nocookie.com/embed/${encodeURIComponent(v.id)}?rel=0`;
     const page = isVimeo ? `https://vimeo.com/${encodeURIComponent(v.id)}${v.hash ? `/${encodeURIComponent(v.hash)}` : ""}` : `https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}`;
-    return `<div class="video"><iframe src="${src}" title="${esc(title)}" loading="lazy"
+    const vtAttr = vt ? ` data-vt="${esc(vt)}" style="view-transition-name: ${esc(vt)}"` : "";
+    return `<div class="project-video"><div class="video"${vtAttr}><iframe src="${src}" title="${esc(title)}" loading="lazy"
         allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen></iframe></div>
-      <a class="video-link" href="${page}" target="_blank" rel="noopener">Ver en ${isVimeo ? "Vimeo" : "YouTube"}</a>`;
+      <a class="video-link" href="${page}" target="_blank" rel="noopener">Ver en ${isVimeo ? "Vimeo" : "YouTube"}</a></div>`;
   }
 
   function renderProject(p) {
     const idx = projects.indexOf(p);
     const next = projects[(idx + 1) % projects.length];
+    // Si hay vídeo va lo primero, y la transición desde la tarjeta aterriza en él
+    const hasVideo = !!(p.video && p.video.id);
+    const vt = `still-${esc(p.slug)}`;
     const credits = [["Tipo", p.category], ["Año", p.year], ...(p.camera ? [["Origen", p.camera]] : []), ...(p.credits || [])];
     main.innerHTML = `
       <article class="project wrap">
@@ -344,10 +348,10 @@
           <p class="project-summary">${esc(p.summary)}</p>
           <dl class="credits">${credits.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
         </div>
+        ${videoHTML(p.video, p.title, hasVideo ? vt : "")}
         <p class="media-hint">Toca un fotograma para verlo en horizontal</p>
         <div class="media">
-          <img src="${esc(p.stills[0])}" alt="Fotograma 1 de ${esc(p.title)}" data-vt="still-${esc(p.slug)}" style="view-transition-name: still-${esc(p.slug)}" tabindex="0">
-          ${videoHTML(p.video, p.title)}
+          <img src="${esc(p.stills[0])}" alt="Fotograma 1 de ${esc(p.title)}"${hasVideo ? "" : ` data-vt="${vt}" style="view-transition-name: ${vt}"`} tabindex="0">
           ${p.stills.slice(1).map((s, i, rest) => `<img src="${esc(s)}" alt="Fotograma ${i + 2} de ${esc(p.title)}" loading="lazy" tabindex="0"${rest.length % 2 && i === rest.length - 1 ? ` class="solo"` : ""}>`).join("")}
         </div>
         ${next && next !== p ? `<a class="next" href="#p-${esc(next.slug)}"><span class="next-label">Siguiente proyecto</span><span class="next-title">${esc(next.title)}</span></a>` : ""}
