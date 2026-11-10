@@ -120,60 +120,6 @@
           "name": "Tornasol Media"
         }
       ]
-    },
-    {
-      "title": "Azul eléctrico",
-      "slug": "azul-electrico",
-      "category": "Serie",
-      "year": 2024,
-      "featured": false,
-      "summary": "Seis episodios. Un look base para toda la serie y variaciones por episodio que se entregaron en HDR y SDR.",
-      "camera": "Blackmagic URSA 12K · BRAW",
-      "stills": [
-        "img/azul-electrico-1.jpg",
-        "img/azul-electrico-2.jpg",
-        "img/azul-electrico-3.jpg",
-        "img/azul-electrico-4.jpg"
-      ],
-      "credits": [
-        {
-          "role": "Creadora",
-          "name": "Elena Casas"
-        },
-        {
-          "role": "Dirección de fotografía",
-          "name": "Tomás Prieto"
-        },
-        {
-          "role": "Plataforma",
-          "name": "Por confirmar"
-        }
-      ]
-    },
-    {
-      "title": "Verano del 92",
-      "slug": "verano-del-92",
-      "category": "Largometraje",
-      "year": 2024,
-      "featured": false,
-      "summary": "Rodada en celuloide. El trabajo fue respetar la emulsión y unificar tres laboratorios de escaneo distintos.",
-      "camera": "Kodak Vision3 35 mm · escaneo 4K",
-      "stills": [
-        "img/verano-del-92-1.jpg",
-        "img/verano-del-92-2.jpg",
-        "img/verano-del-92-3.jpg",
-        "img/verano-del-92-4.jpg"
-      ],
-      "credits": [
-        {
-          "role": "Dirección",
-          "name": "Carmen Lozano"
-        },
-        {
-          "role": "Dirección de fotografía",
-          "name": "Diego Ortega"
-        }
-      ]
     }
   ]
 }
