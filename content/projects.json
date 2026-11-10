@@ -90,31 +90,34 @@
       ]
     },
     {
-      "title": "Cobre",
-      "slug": "cobre",
-      "category": "Publicidad",
-      "year": 2025,
-      "featured": false,
-      "summary": "Spot de 30 segundos. Ámbar y cobre en toda la imagen sin perder el detalle en las sombras del bar.",
-      "camera": "ARRI Alexa Mini LF · ProRes 4444",
+      "title": "Nota de Corte",
+      "slug": "ndc",
+      "category": "Cortometraje",
+      "year": 2026,
+      "featured": true,
       "stills": [
-        "img/cobre-1.jpg",
-        "img/cobre-2.jpg",
-        "img/cobre-3.jpg",
-        "img/cobre-4.jpg"
+        "img/NDC/1.48.1_1.48.1.jpg",
+        "img/NDC/1.30.1_1.30.1.jpg",
+        "img/NDC/1.88.1_1.88.1.jpg",
+        "img/NDC/1.14.1_1.14.1.jpg",
+        "img/NDC/1.35.1_1.35.1.jpg",
+        "img/NDC/1.77.1_1.77.1.jpg",
+        "img/NDC/1.78.1_1.78.1.jpg",
+        "img/NDC/1.87.1_1.87.1.jpg",
+        "img/NDC/1.83.1_1.83.1.jpg"
       ],
       "credits": [
         {
-          "role": "Marca",
-          "name": "Cervezas Ámbar"
-        },
-        {
-          "role": "Agencia",
-          "name": "Norte Studio"
-        },
-        {
           "role": "Dirección",
-          "name": "Javier Lago"
+          "name": "Héctor Fernández Cachón"
+        },
+        {
+          "role": "Dirección de Fotografía",
+          "name": "Dani Lisón"
+        },
+        {
+          "role": "Productora",
+          "name": "Tornasol Media"
         }
       ]
     },
