@@ -105,19 +105,22 @@
     return [...projects.filter((p) => p.featured), ...projects.filter((p) => !p.featured)];
   }
 
-  // Portada: sin frase ni presentación, los trabajos desde arriba. En escritorio un carrusel grande
-  // que llena la pantalla; en móvil las fotos una debajo de otra
   function renderHome() {
     const picks = featured();
     main.innerHTML = `
-      <section class="home wrap" aria-label="Trabajos">
-        <h1 class="visually-hidden">${esc(site.name)}, ${esc(site.role)}</h1>
-        <ul class="rail" id="rail" style="--maxar:${Math.max(1, ...picks.map((p) => ratioFor(p.stills[0])))}" aria-label="Trabajos. Arrastra o desliza para ver más">
-          ${picks.map((p, i) => cardHTML(p, i, picks.length, "slide")).join("")}
-        </ul>
-        <div class="home-foot">
+      <section class="intro wrap" aria-label="Presentación">
+        <p class="intro-line">${esc(site.tagline)}</p>
+      </section>
+
+      <section class="section wrap" aria-labelledby="destacados-title">
+        <div class="section-head">
+          <h2 class="section-title" id="destacados-title">Trabajos recientes</h2>
           <a class="all-link" href="#trabajo">Ver todos los trabajos</a>
         </div>
+        <ul class="rail" id="rail" aria-label="Trabajos recientes. Arrastra o desliza para ver más">
+          ${picks.map((p, i) => cardHTML(p, i, picks.length, "slide")).join("")}
+        </ul>
+        <a class="all-link all-link-bottom" href="#trabajo">Ver todos los trabajos</a>
       </section>`;
     makeRail(document.getElementById("rail"));
   }

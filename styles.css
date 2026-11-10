@@ -614,6 +614,8 @@ a, button { -webkit-tap-highlight-color: transparent; }
   .site-head { view-transition-name: none; }
 
 
+  .intro { padding-block: 40px 56px; }
+  .intro-line { font-size: clamp(1.6rem, 7.4vw, 2.3rem); }
 
   .section-head .all-link { display: none; }
   .all-link.all-link-bottom {
@@ -693,22 +695,3 @@ a, button { -webkit-tap-highlight-color: transparent; }
 .about-portrait { width: 100%; max-width: 420px; height: auto; grid-column: 1 / -1; }
 @media (min-width: 860px) { .about-portrait { grid-column: auto; grid-row: span 2; } .about:has(.about-portrait) { grid-template-columns: 4fr 3fr 6fr; } }
 .about-next { margin-top: clamp(40px, 6vw, 80px); }
-
-/* ---------- Portada: los trabajos desde arriba ---------- */
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.home { padding-block: 0 clamp(64px, 10vw, 140px); }
-/* La altura de las fotos llena la primera pantalla: lo que queda tras la cabecera, el rótulo y el enlace */
-.home .rail { --h: max(240px, min(calc(100svh - 270px), calc(84vw / var(--maxar, 1.8)))); padding-top: 4px; }
-.home .rail > li { width: min(calc(var(--h) * var(--ar, 1.6)), 84vw); }
-.home-foot { display: flex; justify-content: flex-end; padding-top: clamp(8px, 1.4vw, 18px); }
-@media (max-width: 759px) {
-  /* En móvil: una foto debajo de otra, a todo el ancho y a su formato */
-  .home .rail { display: grid; gap: 34px; margin: 0; padding: 4px 0 0; overflow: visible; scroll-snap-type: none; cursor: auto; }
-  .home .rail > li { width: 100%; }
-  .home .rail .card-frame { aspect-ratio: var(--ar, 1.6); height: auto; }
-  .home-foot { justify-content: stretch; padding-top: 2.2rem; }
-  .home-foot .all-link {
-    flex: 1; display: block; padding: .9rem 0; text-align: center;
-    border: 1px solid var(--line); border-radius: 999px; color: var(--fg); transform-origin: 50% 50%;
-  }
-}
